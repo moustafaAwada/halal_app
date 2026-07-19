@@ -1,0 +1,103 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../core/di/service_locator.dart';
+import '../../features/auth/presentation/cubit/forgot_password_cubit.dart';
+import '../../features/auth/presentation/cubit/login_cubit.dart';
+import '../../features/auth/presentation/cubit/register_cubit.dart';
+import '../../features/auth/presentation/pages/forgot_password_request_page.dart';
+import '../../features/auth/presentation/pages/forgot_password_reset_page.dart';
+import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/presentation/pages/register_page.dart';
+import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/onboarding/presentation/pages/onboarding_page.dart';
+import '../../features/splash/presentation/pages/splash_page.dart';
+import 'app_routes.dart';
+
+/// Central route table for the application.
+class AppRouter {
+  static Route<dynamic> onGenerateRoute(RouteSettings settings) {
+    return switch (settings.name) {
+      AppRoutes.splash => MaterialPageRoute<void>(
+          builder: (_) => const SplashPage(),
+          settings: settings,
+        ),
+      AppRoutes.onboarding => MaterialPageRoute<void>(
+          builder: (_) => const OnboardingPage(),
+          settings: settings,
+        ),
+      AppRoutes.login => MaterialPageRoute<void>(
+          builder: (_) => BlocProvider(
+            create: (_) => sl<LoginCubit>(),
+            child: LoginPage(successMessage: settings.arguments as String?),
+          ),
+          settings: settings,
+        ),
+      AppRoutes.register => MaterialPageRoute<void>(
+          builder: (_) => BlocProvider(
+            create: (_) => sl<RegisterCubit>(),
+            child: const RegisterPage(),
+          ),
+          settings: settings,
+        ),
+      AppRoutes.forgotPassword => MaterialPageRoute<void>(
+          builder: (_) => BlocProvider(
+            create: (_) => sl<ForgotPasswordCubit>(),
+            child: const ForgotPasswordRequestPage(),
+          ),
+          settings: settings,
+        ),
+      AppRoutes.forgotPasswordReset => MaterialPageRoute<void>(
+          builder: (_) => BlocProvider(
+            create: (_) => sl<ForgotPasswordCubit>(),
+            child: ForgotPasswordResetPage(
+              email: settings.arguments as String? ?? '',
+            ),
+          ),
+          settings: settings,
+        ),
+      AppRoutes.home => MaterialPageRoute<void>(
+          builder: (_) => const HomePage(),
+          settings: settings,
+        ),
+      _ => MaterialPageRoute<void>(
+          builder: (_) => const SplashPage(),
+          settings: settings,
+        ),
+    };
+  }
+
+  static void goToOnboarding(BuildContext context) {
+    Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
+  }
+
+  static void goToLogin(BuildContext context, {String? successMessage}) {
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      AppRoutes.login,
+      (_) => false,
+      arguments: successMessage,
+    );
+  }
+
+  static void goToRegister(BuildContext context) {
+    Navigator.of(context).pushNamed(AppRoutes.register);
+  }
+
+  static void goToForgotPassword(BuildContext context) {
+    Navigator.of(context).pushNamed(AppRoutes.forgotPassword);
+  }
+
+  static void goToForgotPasswordReset(BuildContext context, {required String email}) {
+    Navigator.of(context).pushNamed(
+      AppRoutes.forgotPasswordReset,
+      arguments: email,
+    );
+  }
+
+  static void goToHome(BuildContext context) {
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      AppRoutes.home,
+      (_) => false,
+    );
+  }
+}
