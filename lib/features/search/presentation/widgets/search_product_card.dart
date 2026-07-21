@@ -7,9 +7,18 @@ import '../../../../core/utils/formatters.dart';
 import '../../domain/entities/search_product.dart';
 
 class SearchProductCard extends StatelessWidget {
-  const SearchProductCard({super.key, required this.product});
+  const SearchProductCard({
+    super.key,
+    required this.product,
+    this.isFavorite = false,
+    this.onFavoriteTap,
+    this.onAddToCart,
+  });
 
   final SearchProduct product;
+  final bool isFavorite;
+  final VoidCallback? onFavoriteTap;
+  final VoidCallback? onAddToCart;
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +64,27 @@ class SearchProductCard extends StatelessWidget {
                     textColor: AppColors.white,
                   ),
                 ),
+              Positioned(
+                top: 12,
+                left: 12,
+                child: Material(
+                  color: AppColors.white.withValues(alpha: 0.92),
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    onTap: onFavoriteTap,
+                    customBorder: const CircleBorder(),
+                    child: SizedBox(
+                      width: 36,
+                      height: 36,
+                      child: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: isFavorite ? Colors.red : AppColors.subtitleGrey,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
           Padding(
@@ -101,19 +131,51 @@ class SearchProductCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                if (product.hasDiscount) ...[
-                  Text(
-                    Formatters.formatPrice(product.priceBeforeDiscount!),
-                    style: AppTextStyles.onboardingSubtitle().copyWith(
-                      decoration: TextDecoration.lineThrough,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (product.hasDiscount) ...[
+                          Text(
+                            Formatters.formatPrice(product.priceBeforeDiscount!),
+                            style: AppTextStyles.onboardingSubtitle().copyWith(
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                        ],
+                        Text(
+                          Formatters.formatPrice(product.price),
+                          style: AppTextStyles.skipButton(
+                            color: AppColors.primaryBlue,
+                          ).copyWith(fontSize: 18),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                ],
-                Text(
-                  Formatters.formatPrice(product.price),
-                  style: AppTextStyles.skipButton(color: AppColors.primaryBlue)
-                      .copyWith(fontSize: 18),
+                    const Spacer(),
+                    Material(
+                      color: AppColors.primaryBlue,
+                      borderRadius: BorderRadius.circular(12),
+                      child: InkWell(
+                        onTap: onAddToCart,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          child: Text(
+                            'أضف للسلة',
+                            style: AppTextStyles.primaryButton().copyWith(
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

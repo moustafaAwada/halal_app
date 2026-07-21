@@ -8,7 +8,10 @@ abstract final class ApiConstants {
   static const forgetPassword = '/forget-password';
   static const menuTop = '/menu/top';
   static const menuSearch = '/menu/search';
+  static const favorites = '/favorites';
 
   static const menuTopUrl = '$menuBaseUrl$menuTop';
   static const menuSearchUrl = '$menuBaseUrl$menuSearch';
+
+  static String favoriteById(int id) => '$favorites/$id';
 }

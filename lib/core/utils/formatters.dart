@@ -2,7 +2,7 @@
 abstract final class Formatters {
   static String formatPrice(num value) {
     final rounded = value % 1 == 0 ? value.toInt().toString() : value.toStringAsFixed(2);
-    return '$rounded ر.س';
+    return '$rounded ج.م';
   }
 
   static String formatBuyersCount(int count) {

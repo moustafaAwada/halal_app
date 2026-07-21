@@ -7,13 +7,23 @@ import '../../../../core/utils/formatters.dart';
 import '../../domain/entities/restaurant.dart';
 
 class RestaurantTile extends StatelessWidget {
-  const RestaurantTile({super.key, required this.restaurant});
+  const RestaurantTile({
+    super.key,
+    required this.restaurant,
+    this.onTap,
+  });
 
   final Restaurant restaurant;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -91,6 +101,8 @@ class RestaurantTile extends StatelessWidget {
             size: 18,
           ),
         ],
+      ),
+        ),
       ),
     );
   }

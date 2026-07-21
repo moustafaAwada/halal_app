@@ -4,13 +4,21 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/snackbar_utils.dart';
+import '../../../favorites/presentation/cubit/favorites_cubit.dart';
 import '../../../search/domain/entities/search_product.dart';
 import '../../../search/presentation/cubit/search_cubit.dart';
 import '../../../search/presentation/widgets/search_category_chip.dart';
 import '../../../search/presentation/widgets/search_product_card.dart';
 import '../../../search/presentation/widgets/search_shimmer.dart';
 import '../../domain/entities/home_data.dart';
+import '../../domain/entities/product.dart';
+import '../../domain/entities/restaurant.dart';
 import '../cubit/home_cubit.dart';
+import '../../domain/entities/product_offer.dart';
+import '../pages/home_view_all_page.dart';
+import '../pages/product_detail_page.dart';
+import '../pages/restaurant_detail_page.dart';
 import '../widgets/home_header.dart';
 import '../widgets/home_search_bar.dart';
 import '../widgets/home_section_header.dart';
@@ -111,7 +119,13 @@ class _HomeContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
+    return BlocListener<FavoritesCubit, FavoritesState>(
+      listener: (context, state) {
+        if (state is FavoritesActionError) {
+          SnackbarUtils.showErrorSnackBar(context, state.message);
+        }
+      },
+      child: RefreshIndicator(
       color: AppColors.primaryBlue,
       onRefresh: () => context.read<HomeCubit>().loadHomeData(),
       child: ListView(
@@ -123,7 +137,13 @@ class _HomeContent extends StatelessWidget {
             onChanged: context.read<SearchCubit>().onSearchChanged,
           ),
           if (data.topProductsOffer.isNotEmpty) ...[
-            const HomeSectionHeader(title: 'عروض حصرية'),
+            HomeSectionHeader(
+              title: 'عروض حصرية',
+              onViewAll: () => _openViewAllOffers(
+                context,
+                data.topProductsOffer,
+              ),
+            ),
             SizedBox(
               height: 190,
               child: ListView.separated(
@@ -132,13 +152,23 @@ class _HomeContent extends StatelessWidget {
                 itemCount: data.topProductsOffer.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 12),
                 itemBuilder: (context, index) {
-                  return OfferCard(offer: data.topProductsOffer[index]);
+                  final offer = data.topProductsOffer[index];
+                  return OfferCard(
+                    offer: offer,
+                    onTap: () => _openProductDetail(context, offer),
+                  );
                 },
               ),
             ),
           ],
           if (data.topProducts.isNotEmpty) ...[
-            const HomeSectionHeader(title: 'الأكثر مبيعاً'),
+            HomeSectionHeader(
+              title: 'الأكثر مبيعاً',
+              onViewAll: () => _openViewAllProducts(
+                context,
+                data.topProducts,
+              ),
+            ),
             SizedBox(
               height: 220,
               child: ListView.separated(
@@ -147,15 +177,28 @@ class _HomeContent extends StatelessWidget {
                 itemCount: data.topProducts.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 12),
                 itemBuilder: (context, index) {
-                  return ProductCard(product: data.topProducts[index]);
+                  final product = data.topProducts[index];
+                  return ProductCard(
+                    product: product,
+                    onTap: () => _openProductDetail(context, product),
+                  );
                 },
               ),
             ),
           ],
           if (data.restaurants.isNotEmpty) ...[
-            const HomeSectionHeader(title: 'المطاعم المميزة'),
+            HomeSectionHeader(
+              title: 'المطاعم المميزة',
+              onViewAll: () => _openViewAllRestaurants(
+                context,
+                data.restaurants,
+              ),
+            ),
             ...data.restaurants.map(
-              (restaurant) => RestaurantTile(restaurant: restaurant),
+              (restaurant) => RestaurantTile(
+                restaurant: restaurant,
+                onTap: () => _openRestaurantDetail(context, restaurant),
+              ),
             ),
           ],
           if (data.reviews.isNotEmpty) ...[
@@ -196,8 +239,102 @@ class _HomeContent extends StatelessWidget {
           ],
         ],
       ),
+      ),
     );
   }
+}
+
+void _openProductDetail(BuildContext context, Product product) {
+  final favoritesCubit = context.read<FavoritesCubit>();
+
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => BlocProvider.value(
+        value: favoritesCubit,
+        child: ProductDetailPage(product: product),
+      ),
+    ),
+  );
+}
+
+void _openRestaurantDetail(BuildContext context, Restaurant restaurant) {
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => RestaurantDetailPage(restaurant: restaurant),
+    ),
+  );
+}
+
+void _openViewAllOffers(BuildContext context, List<ProductOffer> offers) {
+  final favoritesCubit = context.read<FavoritesCubit>();
+
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => BlocProvider.value(
+        value: favoritesCubit,
+        child: HomeViewAllPage(
+          title: 'عروض حصرية',
+          children: offers
+              .map(
+                (offer) => OfferCard(
+                  offer: offer,
+                  fullWidth: true,
+                  onTap: () => _openProductDetail(context, offer),
+                ),
+              )
+              .toList(),
+        ),
+      ),
+    ),
+  );
+}
+
+void _openViewAllProducts(BuildContext context, List<Product> products) {
+  final favoritesCubit = context.read<FavoritesCubit>();
+
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => BlocProvider.value(
+        value: favoritesCubit,
+        child: HomeViewAllPage(
+          title: 'الأكثر مبيعاً',
+          children: products
+              .map(
+                (product) => SizedBox(
+                  height: 220,
+                  child: ProductCard(
+                    product: product,
+                    fullWidth: true,
+                    onTap: () => _openProductDetail(context, product),
+                  ),
+                ),
+              )
+              .toList(),
+        ),
+      ),
+    ),
+  );
+}
+
+void _openViewAllRestaurants(
+  BuildContext context,
+  List<Restaurant> restaurants,
+) {
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => HomeViewAllPage(
+        title: 'المطاعم المميزة',
+        children: restaurants
+            .map(
+              (restaurant) => RestaurantTile(
+                restaurant: restaurant,
+                onTap: () => _openRestaurantDetail(context, restaurant),
+              ),
+            )
+            .toList(),
+      ),
+    ),
+  );
 }
 
 class _HomeSearchContent extends StatelessWidget {
@@ -224,16 +361,23 @@ class _HomeSearchContent extends StatelessWidget {
           selectedCategoryKey: selectedCategoryKey,
         ),
         Expanded(
-          child: switch (searchState) {
-            SearchInitial() || SearchLoading() => const SearchShimmer(),
-            SearchError(:final message) => HomeErrorView(
-                message: message,
-                onRetry: () => context.read<SearchCubit>().retry(),
-              ),
-            SearchLoaded(:final products) => products.isEmpty
-                ? const SearchEmptyView()
-                : _HomeSearchProductList(products: products),
-          },
+          child: BlocListener<FavoritesCubit, FavoritesState>(
+            listener: (context, state) {
+              if (state is FavoritesActionError) {
+                SnackbarUtils.showErrorSnackBar(context, state.message);
+              }
+            },
+            child: switch (searchState) {
+              SearchInitial() || SearchLoading() => const SearchShimmer(),
+              SearchError(:final message) => HomeErrorView(
+                  message: message,
+                  onRetry: () => context.read<SearchCubit>().retry(),
+                ),
+              SearchLoaded(:final products) => products.isEmpty
+                  ? const SearchEmptyView()
+                  : _HomeSearchProductList(products: products),
+            },
+          ),
         ),
       ],
     );
@@ -289,12 +433,39 @@ class _HomeSearchProductList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-      itemCount: products.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 16),
-      itemBuilder: (context, index) {
-        return SearchProductCard(product: products[index]);
+    return BlocBuilder<FavoritesCubit, FavoritesState>(
+      buildWhen: (previous, current) => current is! FavoritesActionError,
+      builder: (context, favoritesState) {
+        final favoriteMenuIds = favoritesState is FavoritesLoaded
+            ? favoritesState.favorites.map((item) => item.menuId).toSet()
+            : <int>{};
+
+        return ListView.separated(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+          itemCount: products.length,
+          separatorBuilder: (_, _) => const SizedBox(height: 16),
+          itemBuilder: (context, index) {
+            final product = products[index];
+            final isFavorite = favoriteMenuIds.contains(product.id);
+
+            return SearchProductCard(
+              product: product,
+              isFavorite: isFavorite,
+              onFavoriteTap: () async {
+                final cubit = context.read<FavoritesCubit>();
+                final wasFavorite = isFavorite;
+                await cubit.toggleFavorite(product.id);
+                if (!wasFavorite && context.mounted) {
+                  SnackbarUtils.showSuccessSnackBar(
+                    context,
+                    'تمت الإضافة إلى المفضلة',
+                  );
+                }
+              },
+              onAddToCart: () {},
+            );
+          },
+        );
       },
     );
   }

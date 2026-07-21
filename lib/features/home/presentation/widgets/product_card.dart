@@ -1,20 +1,34 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../favorites/presentation/cubit/favorites_cubit.dart';
 import '../../domain/entities/product.dart';
 
 class ProductCard extends StatelessWidget {
-  const ProductCard({super.key, required this.product});
+  const ProductCard({
+    super.key,
+    required this.product,
+    this.onTap,
+    this.fullWidth = false,
+  });
 
   final Product product;
+  final VoidCallback? onTap;
+  final bool fullWidth;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 160,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+      width: fullWidth ? double.infinity : 160,
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -43,26 +57,41 @@ class ProductCard extends StatelessWidget {
               Positioned(
                 top: 8,
                 right: 8,
-                child: Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
-                        blurRadius: 8,
+                child: BlocBuilder<FavoritesCubit, FavoritesState>(
+                  buildWhen: (previous, current) =>
+                      current is! FavoritesActionError,
+                  builder: (context, favoritesState) {
+                    final isFavorite = favoritesState is FavoritesLoaded
+                        ? favoritesState.favorites
+                            .any((favorite) => favorite.menuId == product.id)
+                        : product.isFavorite;
+
+                    return Material(
+                      color: AppColors.white,
+                      shape: const CircleBorder(),
+                      elevation: 1,
+                      shadowColor: Colors.black.withValues(alpha: 0.08),
+                      child: InkWell(
+                        onTap: () => context
+                            .read<FavoritesCubit>()
+                            .toggleFavorite(product.id),
+                        customBorder: const CircleBorder(),
+                        child: SizedBox(
+                          width: 30,
+                          height: 30,
+                          child: Icon(
+                            isFavorite
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            size: 16,
+                            color: isFavorite
+                                ? Colors.red
+                                : AppColors.subtitleGrey,
+                          ),
+                        ),
                       ),
-                    ],
-                  ),
-                  child: Icon(
-                    product.isFavorite
-                        ? Icons.favorite
-                        : Icons.favorite_border,
-                    size: 16,
-                    color: product.isFavorite ? Colors.red : AppColors.subtitleGrey,
-                  ),
+                    );
+                  },
                 ),
               ),
             ],
@@ -110,6 +139,8 @@ class ProductCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
+        ),
       ),
     );
   }

@@ -7,14 +7,27 @@ import '../../../../core/utils/formatters.dart';
 import '../../domain/entities/product_offer.dart';
 
 class OfferCard extends StatelessWidget {
-  const OfferCard({super.key, required this.offer});
+  const OfferCard({
+    super.key,
+    required this.offer,
+    this.onTap,
+    this.fullWidth = false,
+  });
 
   final ProductOffer offer;
+  final VoidCallback? onTap;
+  final bool fullWidth;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 280,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+      width: fullWidth ? double.infinity : 280,
+      height: fullWidth ? 190 : null,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         boxShadow: const [
@@ -96,6 +109,8 @@ class OfferCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+        ),
       ),
     );
   }
