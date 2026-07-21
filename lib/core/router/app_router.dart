@@ -9,7 +9,7 @@ import '../../features/auth/presentation/pages/forgot_password_request_page.dart
 import '../../features/auth/presentation/pages/forgot_password_reset_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
-import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/main/presentation/pages/main_shell_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import 'app_routes.dart';
@@ -57,7 +57,7 @@ class AppRouter {
           settings: settings,
         ),
       AppRoutes.home => MaterialPageRoute<void>(
-          builder: (_) => const HomePage(),
+          builder: (_) => const MainShellPage(),
           settings: settings,
         ),
       _ => MaterialPageRoute<void>(

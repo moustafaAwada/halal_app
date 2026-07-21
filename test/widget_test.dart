@@ -12,7 +12,7 @@ void main() {
     expect(find.text('حلال'), findsOneWidget);
     expect(find.text('طلبك... يوصلك'), findsOneWidget);
 
-    await tester.pump(SplashPage.navigationDelay);
+    await tester.pump(SplashPage.minSplashDuration);
     await tester.pumpAndSettle();
   });
 }

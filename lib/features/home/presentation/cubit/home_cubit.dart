@@ -2,23 +2,28 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/usecases/usecase.dart';
-import '../../domain/usecases/get_welcome_message.dart';
+import '../../domain/entities/home_data.dart';
+import '../../domain/usecases/get_home_data.dart';
 
 part 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
-  HomeCubit({required this.getWelcomeMessage}) : super(const HomeInitial());
+  HomeCubit({required GetHomeDataUseCase getHomeDataUseCase})
+      : _getHomeDataUseCase = getHomeDataUseCase,
+        super(const HomeInitial());
 
-  final GetWelcomeMessage getWelcomeMessage;
+  final GetHomeDataUseCase _getHomeDataUseCase;
 
-  Future<void> loadWelcomeMessage() async {
+  Future<void> loadHomeData() async {
     emit(const HomeLoading());
 
-    final result = await getWelcomeMessage(const NoParams());
+    final result = await _getHomeDataUseCase(const NoParams());
 
     result.fold(
       (failure) => emit(HomeError(message: failure.message)),
-      (welcomeMessage) => emit(HomeLoaded(message: welcomeMessage.text)),
+      (data) => emit(HomeLoaded(data: data)),
     );
   }
+
+  Future<void> retry() => loadHomeData();
 }

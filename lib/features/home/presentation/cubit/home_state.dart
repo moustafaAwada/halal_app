@@ -16,12 +16,12 @@ final class HomeLoading extends HomeState {
 }
 
 final class HomeLoaded extends HomeState {
-  const HomeLoaded({required this.message});
+  const HomeLoaded({required this.data});
 
-  final String message;
+  final HomeData data;
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [data];
 }
 
 final class HomeError extends HomeState {
