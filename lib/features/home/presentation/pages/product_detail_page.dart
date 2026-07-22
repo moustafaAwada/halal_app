@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/snackbar_utils.dart';
+import '../../../cart/presentation/cubit/cart_cubit.dart';
 import '../../../favorites/presentation/cubit/favorites_cubit.dart';
 import '../../domain/entities/product_detail.dart';
 import '../cubit/product_detail_cubit.dart';
@@ -18,11 +19,15 @@ void openProductDetail(
   required bool isOffer,
 }) {
   final favoritesCubit = context.read<FavoritesCubit>();
+  final cartCubit = context.read<CartCubit>();
 
   Navigator.of(context).push(
     MaterialPageRoute<void>(
-      builder: (_) => BlocProvider.value(
-        value: favoritesCubit,
+      builder: (_) => MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: favoritesCubit),
+          BlocProvider.value(value: cartCubit),
+        ],
         child: ProductDetailPage(
           itemId: itemId,
           isOffer: isOffer,
@@ -288,7 +293,17 @@ class _ProductDetailContent extends StatelessWidget {
                             width: double.infinity,
                             height: 56,
                             child: FilledButton(
-                              onPressed: () {},
+                              onPressed: () async {
+                                final cubit = context.read<CartCubit>();
+                                await cubit.addToCart(detail.id);
+                                if (!context.mounted) return;
+                                if (cubit.state is CartLoaded) {
+                                  SnackbarUtils.showSuccessSnackBar(
+                                    context,
+                                    'تمت الإضافة إلى السلة',
+                                  );
+                                }
+                              },
                               style: FilledButton.styleFrom(
                                 backgroundColor: AppColors.primaryBlue,
                                 foregroundColor: AppColors.white,

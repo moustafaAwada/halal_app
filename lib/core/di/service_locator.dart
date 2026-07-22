@@ -29,6 +29,17 @@ import '../../features/favorites/domain/usecases/add_favorite.dart';
 import '../../features/favorites/domain/usecases/get_favorites.dart';
 import '../../features/favorites/domain/usecases/remove_favorite.dart';
 import '../../features/favorites/presentation/cubit/favorites_cubit.dart';
+import '../../features/cart/data/datasources/cart_remote_data_source.dart';
+import '../../features/cart/data/repositories/cart_repository_impl.dart';
+import '../../features/cart/domain/repositories/cart_repository.dart';
+import '../../features/cart/domain/usecases/add_to_cart.dart';
+import '../../features/cart/domain/usecases/clear_cart.dart';
+import '../../features/cart/domain/usecases/confirm_order.dart';
+import '../../features/cart/domain/usecases/create_order.dart';
+import '../../features/cart/domain/usecases/get_cart.dart';
+import '../../features/cart/domain/usecases/remove_cart_item.dart';
+import '../../features/cart/domain/usecases/update_cart_item.dart';
+import '../../features/cart/presentation/cubit/cart_cubit.dart';
 import '../../features/onboarding/presentation/cubit/onboarding_cubit.dart';
 import '../../features/search/data/datasources/search_remote_data_source.dart';
 import '../../features/search/data/repositories/search_repository_impl.dart';
@@ -52,6 +63,7 @@ Future<void> initDependencies() async {
   _initHome();
   _initSearch();
   _initFavorites();
+  _initCart();
   _initOnboarding();
 }
 
@@ -148,6 +160,36 @@ void _initFavorites() {
   );
   sl.registerLazySingleton<FavoritesRemoteDataSource>(
     () => FavoritesRemoteDataSourceImpl(
+      dio: sl<DioClient>().dio,
+      errorMapper: sl(),
+    ),
+  );
+}
+
+void _initCart() {
+  sl.registerFactory(
+    () => CartCubit(
+      getCartUseCase: sl(),
+      addToCartUseCase: sl(),
+      updateCartItemUseCase: sl(),
+      removeCartItemUseCase: sl(),
+      clearCartUseCase: sl(),
+      createOrderUseCase: sl(),
+      confirmOrderUseCase: sl(),
+    ),
+  );
+  sl.registerLazySingleton(() => GetCartUseCase(sl()));
+  sl.registerLazySingleton(() => AddToCartUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateCartItemUseCase(sl()));
+  sl.registerLazySingleton(() => RemoveCartItemUseCase(sl()));
+  sl.registerLazySingleton(() => ClearCartUseCase(sl()));
+  sl.registerLazySingleton(() => CreateOrderUseCase(sl()));
+  sl.registerLazySingleton(() => ConfirmOrderUseCase(sl()));
+  sl.registerLazySingleton<CartRepository>(
+    () => CartRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton<CartRemoteDataSource>(
+    () => CartRemoteDataSourceImpl(
       dio: sl<DioClient>().dio,
       errorMapper: sl(),
     ),

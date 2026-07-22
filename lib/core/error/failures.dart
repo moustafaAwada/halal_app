@@ -21,3 +21,10 @@ class CacheFailure extends Failure {
 class NetworkFailure extends Failure {
   const NetworkFailure({super.message = 'No internet connection'});
 }
+
+class MultipleRestaurantsFailure extends Failure {
+  const MultipleRestaurantsFailure({
+    super.message =
+        'سلتك تحتوي على منتجات من مطعم آخر، هل ترغب في تفريغ السلة؟',
+  });
+}

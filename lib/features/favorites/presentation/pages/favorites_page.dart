@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/snackbar_utils.dart';
 import '../../../home/presentation/widgets/home_shimmer.dart';
+import '../../../cart/presentation/cubit/cart_cubit.dart';
 import '../../domain/entities/favorite_item.dart';
 import '../cubit/favorites_cubit.dart';
 import '../widgets/favorite_product_card.dart';
@@ -206,7 +207,17 @@ class _FavoritesList extends StatelessWidget {
             item: item,
             onRemove: () =>
                 context.read<FavoritesCubit>().removeFavorite(item.id),
-            onAddToCart: () {},
+            onAddToCart: () async {
+              final cubit = context.read<CartCubit>();
+              await cubit.addToCart(item.menuId);
+              if (!context.mounted) return;
+              if (cubit.state is CartLoaded) {
+                SnackbarUtils.showSuccessSnackBar(
+                  context,
+                  'تمت الإضافة إلى السلة',
+                );
+              }
+            },
           );
         },
       ),

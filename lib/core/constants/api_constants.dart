@@ -12,6 +12,9 @@ abstract final class ApiConstants {
   static const products = '/products';
   static const offers = '/offers';
   static const restaurants = '/restaurants';
+  static const cart = '/cart';
+  static const createOrder = '/create-order';
+  static const confirmOrder = '/confirm-order';
 
   static const menuTopUrl = '$menuBaseUrl$menuTop';
   static const menuSearchUrl = '$menuBaseUrl$menuSearch';
@@ -20,4 +23,5 @@ abstract final class ApiConstants {
   static String offerById(int id) => '$offers/$id';
   static String restaurantById(int vendorId) => '/restaurant/$vendorId';
   static String favoriteById(int id) => '$favorites/$id';
+  static String cartById(int id) => '$cart/$id';
 }

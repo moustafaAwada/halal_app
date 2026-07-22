@@ -22,12 +22,26 @@ class DioErrorMapper {
 
   ServerException mapToException(DioException exception) {
     final failure = mapToFailure(exception);
+    if (failure is MultipleRestaurantsFailure) {
+      return ServerException(
+        message: failure.message,
+        code: 'MULTIPLE_RESTAURANTS',
+      );
+    }
     return ServerException(message: failure.message);
   }
 
   Failure _mapResponseFailure(Response<dynamic>? response) {
     final statusCode = response?.statusCode;
     final message = _extractMessage(response?.data);
+    final errorCode = _extractErrorCode(response?.data);
+
+    if (statusCode == 400 && errorCode == 'MULTIPLE_RESTAURANTS') {
+      return MultipleRestaurantsFailure(
+        message: message ??
+            'سلتك تحتوي على منتجات من مطعم آخر، هل ترغب في تفريغ السلة؟',
+      );
+    }
 
     return switch (statusCode) {
       400 => ServerFailure(message: message ?? 'البيانات المدخلة غير صحيحة'),
@@ -43,6 +57,16 @@ class DioErrorMapper {
       final message = data['message'];
       if (message is String && message.isNotEmpty) {
         return message;
+      }
+    }
+    return null;
+  }
+
+  String? _extractErrorCode(dynamic data) {
+    if (data is Map<String, dynamic>) {
+      final errorCode = data['error_code'];
+      if (errorCode is String && errorCode.isNotEmpty) {
+        return errorCode;
       }
     }
     return null;

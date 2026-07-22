@@ -32,6 +32,8 @@
 		<string>whatsapp</string>
 		<string>https</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>نحتاج إلى موقعك لتحديد عنوان التوصيل</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

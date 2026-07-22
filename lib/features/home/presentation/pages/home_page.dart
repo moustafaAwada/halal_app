@@ -5,6 +5,7 @@ import '../../../../core/di/service_locator.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/snackbar_utils.dart';
+import '../../../cart/presentation/cubit/cart_cubit.dart';
 import '../../../favorites/presentation/cubit/favorites_cubit.dart';
 import '../../../search/domain/entities/search_product.dart';
 import '../../../search/presentation/cubit/search_cubit.dart';
@@ -479,7 +480,17 @@ class _HomeSearchProductList extends StatelessWidget {
                   );
                 }
               },
-              onAddToCart: () {},
+              onAddToCart: () async {
+                final cubit = context.read<CartCubit>();
+                await cubit.addToCart(product.id);
+                if (!context.mounted) return;
+                if (cubit.state is CartLoaded) {
+                  SnackbarUtils.showSuccessSnackBar(
+                    context,
+                    'تمت الإضافة إلى السلة',
+                  );
+                }
+              },
             );
           },
         );
