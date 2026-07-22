@@ -17,7 +17,11 @@ class ProductOfferModel extends ProductOffer {
 
   factory ProductOfferModel.fromJson(Map<String, dynamic> json) {
     final product = ProductModel.fromJson(json);
-    final oldPrice = JsonParsers.toDouble(json['old_price']);
+    final discount = JsonParsers.toDouble(
+      json['discount_percentage'] ?? json['discount'],
+    ).round();
+    final oldPrice = _resolveOldPrice(json, product.price, discount);
+
     return ProductOfferModel(
       id: product.id,
       name: product.name,
@@ -26,9 +30,24 @@ class ProductOfferModel extends ProductOffer {
       rating: product.rating,
       isFavorite: product.isFavorite,
       totalSold: product.totalSold,
-      oldPrice: oldPrice > 0 ? oldPrice : product.price,
-      discount: JsonParsers.toInt(json['discount']),
+      oldPrice: oldPrice,
+      discount: discount,
     );
+  }
+
+  static double _resolveOldPrice(
+    Map<String, dynamic> json,
+    double price,
+    int discount,
+  ) {
+    final explicitOldPrice = JsonParsers.toDouble(
+      json['old_price'] ?? json['price_before_discount'],
+    );
+    if (explicitOldPrice > price) return explicitOldPrice;
+    if (discount > 0 && discount < 100) {
+      return price / (1 - discount / 100.0);
+    }
+    return price;
   }
 
   ProductOffer toEntity() => ProductOffer(

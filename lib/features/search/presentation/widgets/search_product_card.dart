@@ -11,18 +11,25 @@ class SearchProductCard extends StatelessWidget {
     super.key,
     required this.product,
     this.isFavorite = false,
+    this.onTap,
     this.onFavoriteTap,
     this.onAddToCart,
   });
 
   final SearchProduct product;
   final bool isFavorite;
+  final VoidCallback? onTap;
   final VoidCallback? onFavoriteTap;
   final VoidCallback? onAddToCart;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
@@ -181,6 +188,8 @@ class SearchProductCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+        ),
       ),
     );
   }

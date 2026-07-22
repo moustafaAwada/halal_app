@@ -93,16 +93,18 @@ class OfferCard extends StatelessWidget {
                       Formatters.formatPrice(offer.price),
                       style: AppTextStyles.primaryButton().copyWith(fontSize: 16),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      Formatters.formatPrice(offer.oldPrice),
-                      style: AppTextStyles.splashSlogan(
-                        color: Colors.white70,
-                      ).copyWith(
-                        decoration: TextDecoration.lineThrough,
-                        decorationColor: Colors.white70,
+                    if (offer.oldPrice > offer.price) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        Formatters.formatPrice(offer.oldPrice),
+                        style: AppTextStyles.splashSlogan(
+                          color: Colors.white70,
+                        ).copyWith(
+                          decoration: TextDecoration.lineThrough,
+                          decorationColor: Colors.white70,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ],

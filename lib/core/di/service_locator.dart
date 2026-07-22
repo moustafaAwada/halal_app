@@ -5,6 +5,7 @@ import '../../features/auth/data/datasources/auth_remote_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/domain/usecases/login_usecase.dart';
+import '../../features/auth/domain/usecases/logout_usecase.dart';
 import '../../features/auth/domain/usecases/register_usecase.dart';
 import '../../features/auth/domain/usecases/reset_password_usecase.dart';
 import '../../features/auth/domain/usecases/send_verification_code_usecase.dart';
@@ -15,7 +16,12 @@ import '../../features/home/data/datasources/home_remote_data_source.dart';
 import '../../features/home/data/repositories/home_repository_impl.dart';
 import '../../features/home/domain/repositories/home_repository.dart';
 import '../../features/home/domain/usecases/get_home_data.dart';
+import '../../features/home/domain/usecases/get_offer_details.dart';
+import '../../features/home/domain/usecases/get_product_details.dart';
+import '../../features/home/domain/usecases/get_restaurant_details.dart';
 import '../../features/home/presentation/cubit/home_cubit.dart';
+import '../../features/home/presentation/cubit/product_detail_cubit.dart';
+import '../../features/home/presentation/cubit/restaurant_detail_cubit.dart';
 import '../../features/favorites/data/datasources/favorites_remote_data_source.dart';
 import '../../features/favorites/data/repositories/favorites_repository_impl.dart';
 import '../../features/favorites/domain/repositories/favorites_repository.dart';
@@ -60,6 +66,7 @@ void _initAuth() {
   );
 
   sl.registerLazySingleton(() => LoginUseCase(sl()));
+  sl.registerLazySingleton(() => LogoutUseCase(sl()));
   sl.registerLazySingleton(() => RegisterUseCase(sl()));
   sl.registerLazySingleton(() => SendVerificationCodeUseCase(sl()));
   sl.registerLazySingleton(() => ResetPasswordUseCase(sl()));
@@ -101,7 +108,19 @@ void _initSearch() {
 
 void _initHome() {
   sl.registerFactory(() => HomeCubit(getHomeDataUseCase: sl()));
+  sl.registerFactory(
+    () => ProductDetailCubit(
+      getProductDetailsUseCase: sl(),
+      getOfferDetailsUseCase: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => RestaurantDetailCubit(getRestaurantDetailsUseCase: sl()),
+  );
   sl.registerLazySingleton(() => GetHomeDataUseCase(sl()));
+  sl.registerLazySingleton(() => GetProductDetailsUseCase(sl()));
+  sl.registerLazySingleton(() => GetOfferDetailsUseCase(sl()));
+  sl.registerLazySingleton(() => GetRestaurantDetailsUseCase(sl()));
   sl.registerLazySingleton<HomeRepository>(
     () => HomeRepositoryImpl(remoteDataSource: sl()),
   );

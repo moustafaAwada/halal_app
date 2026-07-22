@@ -158,9 +158,12 @@ class _SplashPageState extends State<SplashPage>
                       'طلبك... يوصلك',
                       style: AppTextStyles.splashSlogan(
                         color: AppColors.subtitleGrey,
+
                       ).copyWith(
                         letterSpacing: 0.5,
+                        fontSize: 40
                       ),
+
                     ),
                   ),
                 ),

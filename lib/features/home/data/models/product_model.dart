@@ -18,7 +18,7 @@ class ProductModel extends Product {
       name: json['name'] as String? ?? '',
       price: JsonParsers.toDouble(json['price']),
       image: json['image'] as String? ?? '',
-      rating: JsonParsers.toDouble(json['rating']),
+      rating: JsonParsers.toDouble(json['rating'] ?? json['average_rating']),
       isFavorite: JsonParsers.toBool(json['isFavorite']),
       totalSold: JsonParsers.toInt(json['total_sold']),
     );

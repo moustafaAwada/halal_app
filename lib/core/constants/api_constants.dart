@@ -9,9 +9,15 @@ abstract final class ApiConstants {
   static const menuTop = '/menu/top';
   static const menuSearch = '/menu/search';
   static const favorites = '/favorites';
+  static const products = '/products';
+  static const offers = '/offers';
+  static const restaurants = '/restaurants';
 
   static const menuTopUrl = '$menuBaseUrl$menuTop';
   static const menuSearchUrl = '$menuBaseUrl$menuSearch';
 
+  static String productById(int id) => '$products/$id';
+  static String offerById(int id) => '$offers/$id';
+  static String restaurantById(int vendorId) => '/restaurant/$vendorId';
   static String favoriteById(int id) => '$favorites/$id';
 }

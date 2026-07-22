@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../favorites/presentation/cubit/favorites_cubit.dart';
 import '../../../favorites/presentation/pages/favorites_page.dart';
 import '../../../home/presentation/pages/home_page.dart';
+import '../pages/account_page.dart';
 import '../widgets/app_bottom_nav_bar.dart';
 import 'placeholder_tab_page.dart';
 
@@ -41,10 +42,7 @@ class _MainShellPageState extends State<MainShellPage> {
         title: 'طلباتي',
         icon: Icons.receipt_long_outlined,
       ),
-      const PlaceholderTabPage(
-        title: 'حسابي',
-        icon: Icons.person_outline,
-      ),
+      const AccountPage(),
     ];
   }
 

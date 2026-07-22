@@ -155,7 +155,11 @@ class _HomeContent extends StatelessWidget {
                   final offer = data.topProductsOffer[index];
                   return OfferCard(
                     offer: offer,
-                    onTap: () => _openProductDetail(context, offer),
+                    onTap: () => _openProductDetail(
+                      context,
+                      offer,
+                      isOffer: true,
+                    ),
                   );
                 },
               ),
@@ -244,23 +248,27 @@ class _HomeContent extends StatelessWidget {
   }
 }
 
-void _openProductDetail(BuildContext context, Product product) {
+void _openProductDetail(
+  BuildContext context,
+  Product product, {
+  bool isOffer = false,
+}) {
+  openProductDetail(
+    context,
+    itemId: product.id,
+    isOffer: isOffer,
+  );
+}
+
+void _openRestaurantDetail(BuildContext context, Restaurant restaurant) {
   final favoritesCubit = context.read<FavoritesCubit>();
 
   Navigator.of(context).push(
     MaterialPageRoute<void>(
       builder: (_) => BlocProvider.value(
         value: favoritesCubit,
-        child: ProductDetailPage(product: product),
+        child: RestaurantDetailPage(vendorId: restaurant.id),
       ),
-    ),
-  );
-}
-
-void _openRestaurantDetail(BuildContext context, Restaurant restaurant) {
-  Navigator.of(context).push(
-    MaterialPageRoute<void>(
-      builder: (_) => RestaurantDetailPage(restaurant: restaurant),
     ),
   );
 }
@@ -279,7 +287,11 @@ void _openViewAllOffers(BuildContext context, List<ProductOffer> offers) {
                 (offer) => OfferCard(
                   offer: offer,
                   fullWidth: true,
-                  onTap: () => _openProductDetail(context, offer),
+                  onTap: () => _openProductDetail(
+                    context,
+                    offer,
+                    isOffer: true,
+                  ),
                 ),
               )
               .toList(),
@@ -451,6 +463,11 @@ class _HomeSearchProductList extends StatelessWidget {
             return SearchProductCard(
               product: product,
               isFavorite: isFavorite,
+              onTap: () => openProductDetail(
+                context,
+                itemId: product.id,
+                isOffer: false,
+              ),
               onFavoriteTap: () async {
                 final cubit = context.read<FavoritesCubit>();
                 final wasFavorite = isFavorite;
