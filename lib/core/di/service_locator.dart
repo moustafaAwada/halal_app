@@ -41,6 +41,14 @@ import '../../features/cart/domain/usecases/get_cart.dart';
 import '../../features/cart/domain/usecases/remove_cart_item.dart';
 import '../../features/cart/domain/usecases/update_cart_item.dart';
 import '../../features/cart/presentation/cubit/cart_cubit.dart';
+import '../../features/notifications/data/datasources/notifications_remote_data_source.dart';
+import '../../features/notifications/data/repositories/notifications_repository_impl.dart';
+import '../../features/notifications/domain/repositories/notifications_repository.dart';
+import '../../features/notifications/domain/usecases/get_all_notifications.dart';
+import '../../features/notifications/domain/usecases/get_unread_notifications.dart';
+import '../../features/notifications/domain/usecases/mark_notification_as_read.dart';
+import '../../features/notifications/presentation/cubit/notifications_cubit.dart';
+import '../../features/notifications/presentation/cubit/unread_notifications_cubit.dart';
 import '../../features/orders/data/datasources/orders_remote_data_source.dart';
 import '../../features/orders/data/repositories/orders_repository_impl.dart';
 import '../../features/orders/domain/repositories/orders_repository.dart';
@@ -80,6 +88,7 @@ Future<void> initDependencies() async {
   _initCart();
   _initProfile();
   _initOrders();
+  _initNotifications();
   _initOnboarding();
 }
 
@@ -248,6 +257,35 @@ void _initOrders() {
   );
   sl.registerLazySingleton<OrdersRemoteDataSource>(
     () => OrdersRemoteDataSourceImpl(
+      dio: sl<DioClient>().dio,
+      errorMapper: sl(),
+    ),
+  );
+}
+
+void _initNotifications() {
+  sl.registerFactory(
+    () => NotificationsCubit(
+      getStoredUserIdUseCase: sl(),
+      getAllNotificationsUseCase: sl(),
+      getUnreadNotificationsUseCase: sl(),
+      markNotificationAsReadUseCase: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => UnreadNotificationsCubit(
+      getStoredUserIdUseCase: sl(),
+      getUnreadNotificationsUseCase: sl(),
+    ),
+  );
+  sl.registerLazySingleton(() => GetAllNotificationsUseCase(sl()));
+  sl.registerLazySingleton(() => GetUnreadNotificationsUseCase(sl()));
+  sl.registerLazySingleton(() => MarkNotificationAsReadUseCase(sl()));
+  sl.registerLazySingleton<NotificationsRepository>(
+    () => NotificationsRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton<NotificationsRemoteDataSource>(
+    () => NotificationsRemoteDataSourceImpl(
       dio: sl<DioClient>().dio,
       errorMapper: sl(),
     ),

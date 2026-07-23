@@ -52,20 +52,20 @@ class HomeSearchBar extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          Material(
-            color: AppColors.primaryBlue,
-            borderRadius: BorderRadius.circular(14),
-            child: InkWell(
-              onTap: () {},
-              borderRadius: BorderRadius.circular(14),
-              child: const SizedBox(
-                width: 52,
-                height: 52,
-                child: Icon(Icons.tune_rounded, color: AppColors.white),
-              ),
-            ),
-          ),
+          // const SizedBox(width: 12),
+          // Material(
+          //   color: AppColors.primaryBlue,
+          //   borderRadius: BorderRadius.circular(14),
+          //   child: InkWell(
+          //     onTap: () {},
+          //     borderRadius: BorderRadius.circular(14),
+          //     child: const SizedBox(
+          //       width: 52,
+          //       height: 52,
+          //       child: Icon(Icons.tune_rounded, color: AppColors.white),
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );

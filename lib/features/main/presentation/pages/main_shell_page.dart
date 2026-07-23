@@ -52,6 +52,9 @@ class _MainShellPageState extends State<MainShellPage> {
       const OrdersScreen(),
       const ProfileScreen(),
     ];
+
+    // Load favorites on home open so product heart icons show the correct state.
+    _favoritesCubit.loadFavorites();
   }
 
   void _goToHome() {
@@ -134,7 +137,7 @@ class _MainShellPageState extends State<MainShellPage> {
               currentIndex: _currentIndex,
               onItemSelected: (index) {
                 setState(() => _currentIndex = index);
-                if (index == _favoritesTabIndex) {
+                if (index == 0 || index == _favoritesTabIndex) {
                   _favoritesCubit.loadFavorites();
                 } else if (index == _cartTabIndex) {
                   _cartCubit.loadCart();

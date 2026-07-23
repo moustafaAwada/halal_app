@@ -7,6 +7,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/snackbar_utils.dart';
 import '../../../cart/presentation/cubit/cart_cubit.dart';
 import '../../../favorites/presentation/cubit/favorites_cubit.dart';
+import '../../../notifications/presentation/cubit/unread_notifications_cubit.dart';
 import '../../../search/domain/entities/search_product.dart';
 import '../../../search/presentation/cubit/search_cubit.dart';
 import '../../../search/presentation/widgets/search_category_chip.dart';
@@ -57,6 +58,9 @@ class _HomePageState extends State<HomePage> {
       providers: [
         BlocProvider(create: (_) => sl<HomeCubit>()..loadHomeData()),
         BlocProvider(create: (_) => sl<SearchCubit>()),
+        BlocProvider(
+          create: (_) => sl<UnreadNotificationsCubit>()..checkUnread(),
+        ),
       ],
       child: _HomeView(searchController: _searchController),
     );
