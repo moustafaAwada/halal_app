@@ -31,4 +31,6 @@ abstract class AuthRepository {
   Future<bool> isLoggedIn();
 
   Future<void> logout();
+
+  Future<Either<Failure, int>> getStoredUserId();
 }

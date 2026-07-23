@@ -9,9 +9,11 @@ import '../../../cart/presentation/pages/cart_page.dart';
 import '../../../favorites/presentation/cubit/favorites_cubit.dart';
 import '../../../favorites/presentation/pages/favorites_page.dart';
 import '../../../home/presentation/pages/home_page.dart';
-import '../pages/account_page.dart';
+import '../../../orders/presentation/cubit/orders_cubit.dart';
+import '../../../orders/presentation/pages/orders_screen.dart';
+import '../../../profile/presentation/cubit/profile_cubit.dart';
+import '../../../profile/presentation/pages/profile_screen.dart';
 import '../widgets/app_bottom_nav_bar.dart';
-import 'placeholder_tab_page.dart';
 
 class MainShellPage extends StatefulWidget {
   const MainShellPage({super.key});
@@ -23,10 +25,14 @@ class MainShellPage extends StatefulWidget {
 class _MainShellPageState extends State<MainShellPage> {
   static const _favoritesTabIndex = 1;
   static const _cartTabIndex = 2;
+  static const _ordersTabIndex = 3;
+  static const _accountTabIndex = 4;
 
   int _currentIndex = 0;
   late final FavoritesCubit _favoritesCubit;
   late final CartCubit _cartCubit;
+  late final OrdersCubit _ordersCubit;
+  late final ProfileCubit _profileCubit;
   late final List<Widget> _pages;
 
   @override
@@ -34,6 +40,8 @@ class _MainShellPageState extends State<MainShellPage> {
     super.initState();
     _favoritesCubit = sl<FavoritesCubit>();
     _cartCubit = sl<CartCubit>();
+    _ordersCubit = sl<OrdersCubit>();
+    _profileCubit = sl<ProfileCubit>();
     _pages = [
       const HomePage(),
       FavoritesPage(
@@ -41,11 +49,8 @@ class _MainShellPageState extends State<MainShellPage> {
         onBrowseOffers: _goToHome,
       ),
       const CartPage(),
-      const PlaceholderTabPage(
-        title: 'طلباتي',
-        icon: Icons.receipt_long_outlined,
-      ),
-      const AccountPage(),
+      const OrdersScreen(),
+      const ProfileScreen(),
     ];
   }
 
@@ -94,6 +99,8 @@ class _MainShellPageState extends State<MainShellPage> {
   void dispose() {
     _favoritesCubit.close();
     _cartCubit.close();
+    _ordersCubit.close();
+    _profileCubit.close();
     super.dispose();
   }
 
@@ -103,6 +110,8 @@ class _MainShellPageState extends State<MainShellPage> {
       providers: [
         BlocProvider.value(value: _favoritesCubit),
         BlocProvider.value(value: _cartCubit),
+        BlocProvider.value(value: _ordersCubit),
+        BlocProvider.value(value: _profileCubit),
       ],
       child: BlocListener<CartCubit, CartState>(
         listener: (context, state) {
@@ -129,6 +138,12 @@ class _MainShellPageState extends State<MainShellPage> {
                   _favoritesCubit.loadFavorites();
                 } else if (index == _cartTabIndex) {
                   _cartCubit.loadCart();
+                } else if (index == _ordersTabIndex) {
+                  _ordersCubit.loadOrders(
+                    status: _ordersCubit.selectedStatus,
+                  );
+                } else if (index == _accountTabIndex) {
+                  _profileCubit.fetchProfile();
                 }
               },
             ),

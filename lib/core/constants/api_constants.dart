@@ -15,6 +15,7 @@ abstract final class ApiConstants {
   static const cart = '/cart';
   static const createOrder = '/create-order';
   static const confirmOrder = '/confirm-order';
+  static const orders = '/orders';
 
   static const menuTopUrl = '$menuBaseUrl$menuTop';
   static const menuSearchUrl = '$menuBaseUrl$menuSearch';
@@ -24,4 +25,7 @@ abstract final class ApiConstants {
   static String restaurantById(int vendorId) => '/restaurant/$vendorId';
   static String favoriteById(int id) => '$favorites/$id';
   static String cartById(int id) => '$cart/$id';
+  static String userProfileById(int id) => '/$id';
+  static String updateUserProfile(int id) => '/update/$id';
+  static String orderDetails(int id) => '/order-details/$id';
 }

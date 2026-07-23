@@ -5,6 +5,10 @@ abstract class AuthLocalDataSource {
   Future<String?> getToken();
   Future<void> deleteToken();
   Future<bool> hasToken();
+
+  Future<void> saveUserId(int userId);
+  Future<int?> getUserId();
+  Future<void> deleteUserId();
 }
 
 class AuthLocalDataSourceImpl implements AuthLocalDataSource {
@@ -24,4 +28,13 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
 
   @override
   Future<bool> hasToken() => _secureStorage.hasToken();
+
+  @override
+  Future<void> saveUserId(int userId) => _secureStorage.saveUserId(userId);
+
+  @override
+  Future<int?> getUserId() => _secureStorage.getUserId();
+
+  @override
+  Future<void> deleteUserId() => _secureStorage.deleteUserId();
 }

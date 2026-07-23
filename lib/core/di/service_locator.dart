@@ -4,6 +4,7 @@ import '../../features/auth/data/datasources/auth_local_data_source.dart';
 import '../../features/auth/data/datasources/auth_remote_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
+import '../../features/auth/domain/usecases/get_stored_user_id.dart';
 import '../../features/auth/domain/usecases/login_usecase.dart';
 import '../../features/auth/domain/usecases/logout_usecase.dart';
 import '../../features/auth/domain/usecases/register_usecase.dart';
@@ -40,6 +41,19 @@ import '../../features/cart/domain/usecases/get_cart.dart';
 import '../../features/cart/domain/usecases/remove_cart_item.dart';
 import '../../features/cart/domain/usecases/update_cart_item.dart';
 import '../../features/cart/presentation/cubit/cart_cubit.dart';
+import '../../features/orders/data/datasources/orders_remote_data_source.dart';
+import '../../features/orders/data/repositories/orders_repository_impl.dart';
+import '../../features/orders/domain/repositories/orders_repository.dart';
+import '../../features/orders/domain/usecases/get_order_details.dart';
+import '../../features/orders/domain/usecases/get_orders.dart';
+import '../../features/orders/presentation/cubit/order_details_cubit.dart';
+import '../../features/orders/presentation/cubit/orders_cubit.dart';
+import '../../features/profile/data/datasources/profile_remote_data_source.dart';
+import '../../features/profile/data/repositories/profile_repository_impl.dart';
+import '../../features/profile/domain/repositories/profile_repository.dart';
+import '../../features/profile/domain/usecases/get_user_profile.dart';
+import '../../features/profile/domain/usecases/update_user_profile.dart';
+import '../../features/profile/presentation/cubit/profile_cubit.dart';
 import '../../features/onboarding/presentation/cubit/onboarding_cubit.dart';
 import '../../features/search/data/datasources/search_remote_data_source.dart';
 import '../../features/search/data/repositories/search_repository_impl.dart';
@@ -64,6 +78,8 @@ Future<void> initDependencies() async {
   _initSearch();
   _initFavorites();
   _initCart();
+  _initProfile();
+  _initOrders();
   _initOnboarding();
 }
 
@@ -82,6 +98,7 @@ void _initAuth() {
   sl.registerLazySingleton(() => RegisterUseCase(sl()));
   sl.registerLazySingleton(() => SendVerificationCodeUseCase(sl()));
   sl.registerLazySingleton(() => ResetPasswordUseCase(sl()));
+  sl.registerLazySingleton(() => GetStoredUserIdUseCase(sl()));
 
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(
@@ -190,6 +207,47 @@ void _initCart() {
   );
   sl.registerLazySingleton<CartRemoteDataSource>(
     () => CartRemoteDataSourceImpl(
+      dio: sl<DioClient>().dio,
+      errorMapper: sl(),
+    ),
+  );
+}
+
+void _initProfile() {
+  sl.registerFactory(
+    () => ProfileCubit(
+      getStoredUserIdUseCase: sl(),
+      getUserProfileUseCase: sl(),
+      updateUserProfileUseCase: sl(),
+    ),
+  );
+  sl.registerLazySingleton(() => GetUserProfileUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateUserProfileUseCase(sl()));
+  sl.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton<ProfileRemoteDataSource>(
+    () => ProfileRemoteDataSourceImpl(
+      dio: sl<DioClient>().dio,
+      errorMapper: sl(),
+    ),
+  );
+}
+
+void _initOrders() {
+  sl.registerFactory(
+    () => OrdersCubit(getOrdersUseCase: sl()),
+  );
+  sl.registerFactory(
+    () => OrderDetailsCubit(getOrderDetailsUseCase: sl()),
+  );
+  sl.registerLazySingleton(() => GetOrdersUseCase(sl()));
+  sl.registerLazySingleton(() => GetOrderDetailsUseCase(sl()));
+  sl.registerLazySingleton<OrdersRepository>(
+    () => OrdersRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton<OrdersRemoteDataSource>(
+    () => OrdersRemoteDataSourceImpl(
       dio: sl<DioClient>().dio,
       errorMapper: sl(),
     ),

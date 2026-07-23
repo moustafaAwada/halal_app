@@ -1,4 +1,5 @@
 import '../../domain/entities/user.dart';
+import '../../../../core/utils/json_parsers.dart';
 
 class UserModel extends User {
   const UserModel({
@@ -10,7 +11,7 @@ class UserModel extends User {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: (json['id'] as num?)?.toInt() ?? 0,
+      id: JsonParsers.toInt(json['user_id'] ?? json['id']),
       name: json['name'] as String? ?? '',
       email: json['email'] as String? ?? '',
       role: json['role'] as String? ?? '',

@@ -53,8 +53,8 @@ class DioErrorMapper {
   }
 
   String? _extractMessage(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      final message = data['message'];
+    if (data is Map) {
+      final message = Map<String, dynamic>.from(data)['message'];
       if (message is String && message.isNotEmpty) {
         return message;
       }
@@ -63,8 +63,8 @@ class DioErrorMapper {
   }
 
   String? _extractErrorCode(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      final errorCode = data['error_code'];
+    if (data is Map) {
+      final errorCode = Map<String, dynamic>.from(data)['error_code'];
       if (errorCode is String && errorCode.isNotEmpty) {
         return errorCode;
       }
