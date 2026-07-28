@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -33,15 +32,16 @@ class LocationPickerPage extends StatefulWidget {
 
 class _LocationPickerPageState extends State<LocationPickerPage> {
   static const _fallbackCenter = LatLng(30.0444, 31.2357);
+  static const _markerId = MarkerId('selected_location');
 
-  late final MapController _mapController;
+  GoogleMapController? _mapController;
   late LatLng _selectedPoint;
   bool _isLocating = false;
+  bool _isProgrammaticMove = false;
 
   @override
   void initState() {
     super.initState();
-    _mapController = MapController();
     _selectedPoint = LatLng(
       widget.initialLatitude ?? _fallbackCenter.latitude,
       widget.initialLongitude ?? _fallbackCenter.longitude,
@@ -50,9 +50,20 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
 
   @override
   void dispose() {
-    _mapController.dispose();
+    _mapController?.dispose();
     super.dispose();
   }
+
+  Set<Marker> get _markers => {
+        Marker(
+          markerId: _markerId,
+          position: _selectedPoint,
+          draggable: true,
+          onDragEnd: (position) {
+            setState(() => _selectedPoint = position);
+          },
+        ),
+      };
 
   Future<void> _useCurrentLocation() async {
     setState(() => _isLocating = true);
@@ -64,10 +75,15 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
 
     result.fold(
       (failure) => SnackbarUtils.showErrorSnackBar(context, failure.message),
-      (coordinates) {
+      (coordinates) async {
         final point = LatLng(coordinates.latitude, coordinates.longitude);
         setState(() => _selectedPoint = point);
-        _mapController.move(point, 16);
+        _isProgrammaticMove = true;
+        await _mapController?.animateCamera(
+          CameraUpdate.newLatLngZoom(point, 16),
+        );
+        _isProgrammaticMove = false;
+        if (!mounted) return;
         SnackbarUtils.showSuccessSnackBar(context, 'تم نقل المؤشر إلى موقعك');
       },
     );
@@ -92,7 +108,13 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
           backgroundColor: AppColors.white,
           foregroundColor: Colors.black87,
           elevation: 0,
+          surfaceTintColor: Colors.transparent,
           centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios, size: 18),
+            color: Colors.black87,
+            onPressed: () => Navigator.of(context).maybePop(),
+          ),
           title: Text(
             'اختيار موقع التوصيل',
             style: AppTextStyles.skipButton(color: Colors.black87)
@@ -101,41 +123,27 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
         ),
         body: Stack(
           children: [
-            FlutterMap(
-              mapController: _mapController,
-              options: MapOptions(
-                initialCenter: _selectedPoint,
-                initialZoom: 15,
-                onTap: (_, point) {
-                  setState(() => _selectedPoint = point);
-                },
-                onPositionChanged: (position, hasGesture) {
-                  if (!hasGesture) return;
-                  final center = position.center;
-                  setState(() => _selectedPoint = center);
-                },
+            GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: _selectedPoint,
+                zoom: 15,
               ),
-              children: [
-                TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'com.example.halal_app',
-                ),
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: _selectedPoint,
-                      width: 48,
-                      height: 48,
-                      alignment: Alignment.topCenter,
-                      child: const Icon(
-                        Icons.location_on_rounded,
-                        size: 48,
-                        color: AppColors.primaryBlue,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              markers: _markers,
+              myLocationEnabled: true,
+              myLocationButtonEnabled: false,
+              zoomControlsEnabled: false,
+              mapToolbarEnabled: false,
+              compassEnabled: true,
+              onMapCreated: (controller) {
+                _mapController = controller;
+              },
+              onTap: (position) {
+                setState(() => _selectedPoint = position);
+              },
+              onCameraMove: (position) {
+                if (_isProgrammaticMove) return;
+                setState(() => _selectedPoint = position.target);
+              },
             ),
             Positioned(
               top: 16,
