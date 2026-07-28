@@ -26,6 +26,12 @@ class OrderDetailsScreen extends StatelessWidget {
           backgroundColor: AppColors.white,
           foregroundColor: Colors.black87,
           elevation: 0,
+          surfaceTintColor: Colors.transparent,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios, size: 18),
+            color: Colors.black87,
+            onPressed: () => Navigator.of(context).maybePop(),
+          ),
           title: Text(
             'تفاصيل الطلب #$orderId',
             style: AppTextStyles.skipButton(color: Colors.black87)

@@ -21,6 +21,7 @@ import '../../domain/entities/product_offer.dart';
 import '../pages/home_view_all_page.dart';
 import '../pages/product_detail_page.dart';
 import '../pages/restaurant_detail_page.dart';
+import '../widgets/home_ads_banner.dart';
 import '../widgets/home_header.dart';
 import '../widgets/home_search_bar.dart';
 import '../widgets/home_section_header.dart';
@@ -141,6 +142,7 @@ class _HomeContent extends StatelessWidget {
             controller: searchController,
             onChanged: context.read<SearchCubit>().onSearchChanged,
           ),
+          const HomeAdsBanner(),
           if (data.topProductsOffer.isNotEmpty) ...[
             HomeSectionHeader(
               title: 'عروض حصرية',
@@ -190,6 +192,7 @@ class _HomeContent extends StatelessWidget {
                   return ProductCard(
                     product: product,
                     onTap: () => _openProductDetail(context, product),
+                    onAddToCart: () => _addProductToCart(context, product.id),
                   );
                 },
               ),
@@ -265,6 +268,15 @@ void _openProductDetail(
   );
 }
 
+Future<void> _addProductToCart(BuildContext context, int productId) async {
+  final cubit = context.read<CartCubit>();
+  await cubit.addToCart(productId);
+  if (!context.mounted) return;
+  if (cubit.state is CartLoaded) {
+    SnackbarUtils.showSuccessSnackBar(context, 'تمت الإضافة إلى السلة');
+  }
+}
+
 void _openRestaurantDetail(BuildContext context, Restaurant restaurant) {
   final favoritesCubit = context.read<FavoritesCubit>();
 
@@ -308,11 +320,15 @@ void _openViewAllOffers(BuildContext context, List<ProductOffer> offers) {
 
 void _openViewAllProducts(BuildContext context, List<Product> products) {
   final favoritesCubit = context.read<FavoritesCubit>();
+  final cartCubit = context.read<CartCubit>();
 
   Navigator.of(context).push(
     MaterialPageRoute<void>(
-      builder: (_) => BlocProvider.value(
-        value: favoritesCubit,
+      builder: (_) => MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: favoritesCubit),
+          BlocProvider.value(value: cartCubit),
+        ],
         child: HomeViewAllPage(
           title: 'الأكثر مبيعاً',
           children: products
@@ -323,6 +339,7 @@ void _openViewAllProducts(BuildContext context, List<Product> products) {
                     product: product,
                     fullWidth: true,
                     onTap: () => _openProductDetail(context, product),
+                    onAddToCart: () => _addProductToCart(context, product.id),
                   ),
                 ),
               )

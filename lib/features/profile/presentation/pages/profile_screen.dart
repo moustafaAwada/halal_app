@@ -10,6 +10,8 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../../../core/utils/snackbar_utils.dart';
 import '../../../auth/domain/usecases/logout_usecase.dart';
+import '../../../chat/presentation/cubit/chat_cubit.dart';
+import '../../../chat/presentation/pages/chat_screen.dart';
 import '../../../home/presentation/widgets/home_shimmer.dart';
 import '../../domain/entities/user_profile.dart';
 import '../cubit/profile_cubit.dart';
@@ -87,6 +89,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       phone: _phoneController.text.trim(),
       address: _addressController.text.trim(),
       city: _cityController.text.trim(),
+    );
+  }
+
+  void _openSupportChat() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => BlocProvider(
+          create: (_) => sl<ChatCubit>()..fetchHistory(),
+          child: const ChatScreen(),
+        ),
+      ),
     );
   }
 
@@ -308,6 +321,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onCancelEdit: () => _cancelEditing(profile),
                   onSave: _saveProfile,
                   onLogout: _handleLogout,
+                  onOpenSupportChat: _openSupportChat,
                   onRefresh: () => context.read<ProfileCubit>().fetchProfile(),
                 ),
                 _ => const SizedBox.shrink(),
@@ -335,6 +349,7 @@ class _ProfileContent extends StatelessWidget {
     required this.onCancelEdit,
     required this.onSave,
     required this.onLogout,
+    required this.onOpenSupportChat,
     required this.onRefresh,
   });
 
@@ -351,6 +366,7 @@ class _ProfileContent extends StatelessWidget {
   final VoidCallback onCancelEdit;
   final VoidCallback onSave;
   final VoidCallback onLogout;
+  final VoidCallback onOpenSupportChat;
   final Future<void> Function() onRefresh;
 
   @override
@@ -417,7 +433,9 @@ class _ProfileContent extends StatelessWidget {
                         duration: const Duration(milliseconds: 260),
                         sizeCurve: Curves.easeOutCubic,
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 12),
+                      _buildSupportChatButton(),
+                      const SizedBox(height: 12),
                       _buildLogoutButton(),
                     ],
                   ),
@@ -466,6 +484,49 @@ class _ProfileContent extends StatelessWidget {
     );
   }
 
+  Widget _buildSupportChatButton() {
+    return Material(
+      color: AppColors.reviewsBackground,
+      borderRadius: BorderRadius.circular(18),
+      clipBehavior: Clip.antiAlias,
+      child: ListTile(
+        onTap: onOpenSupportChat,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(
+            color: AppColors.primaryBlue.withValues(alpha: 0.15),
+          ),
+        ),
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.support_agent_rounded,
+            color: AppColors.primaryBlue,
+            size: 22,
+          ),
+        ),
+        title: Text(
+          'الدعم الفني',
+          style: AppTextStyles.skipButton(color: Colors.black87).copyWith(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        trailing: const Icon(
+          Icons.arrow_back_ios,
+          size: 16,
+          color: AppColors.subtitleGrey,
+        ),
+      ),
+    );
+  }
+
   Widget _buildLogoutButton() {
     return Material(
       color: Colors.red.shade50.withOpacity(0.6),
@@ -503,7 +564,7 @@ class _ProfileContent extends StatelessWidget {
                 ),
               ),
               Icon(
-                Icons.arrow_forward_ios_rounded,
+                Icons.arrow_back_ios,
                 size: 14,
                 color: Colors.red.shade300,
               ),

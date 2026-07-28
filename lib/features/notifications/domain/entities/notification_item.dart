@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-/// Domain entity representing a single user notification.
 class NotificationItem extends Equatable {
   const NotificationItem({
     required this.id,
@@ -19,12 +18,10 @@ class NotificationItem extends Equatable {
   final String message;
   final String type;
 
-  /// Related entity id (order, payment, etc.). Null for generic notifications.
   final int? referenceId;
   final bool read;
   final DateTime? createdAt;
 
-  /// Returns a copy with selectively overridden fields (used for local read updates).
   NotificationItem copyWith({
     int? id,
     int? userId,

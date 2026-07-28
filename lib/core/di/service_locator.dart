@@ -41,6 +41,12 @@ import '../../features/cart/domain/usecases/get_cart.dart';
 import '../../features/cart/domain/usecases/remove_cart_item.dart';
 import '../../features/cart/domain/usecases/update_cart_item.dart';
 import '../../features/cart/presentation/cubit/cart_cubit.dart';
+import '../../features/chat/data/datasources/chat_remote_data_source.dart';
+import '../../features/chat/data/repositories/chat_repository_impl.dart';
+import '../../features/chat/domain/repositories/chat_repository.dart';
+import '../../features/chat/domain/usecases/get_chat_history.dart';
+import '../../features/chat/domain/usecases/send_chat_message.dart';
+import '../../features/chat/presentation/cubit/chat_cubit.dart';
 import '../../features/notifications/data/datasources/notifications_remote_data_source.dart';
 import '../../features/notifications/data/repositories/notifications_repository_impl.dart';
 import '../../features/notifications/domain/repositories/notifications_repository.dart';
@@ -89,6 +95,7 @@ Future<void> initDependencies() async {
   _initProfile();
   _initOrders();
   _initNotifications();
+  _initChat();
   _initOnboarding();
 }
 
@@ -286,6 +293,26 @@ void _initNotifications() {
   );
   sl.registerLazySingleton<NotificationsRemoteDataSource>(
     () => NotificationsRemoteDataSourceImpl(
+      dio: sl<DioClient>().dio,
+      errorMapper: sl(),
+    ),
+  );
+}
+
+void _initChat() {
+  sl.registerFactory(
+    () => ChatCubit(
+      getChatHistoryUseCase: sl(),
+      sendChatMessageUseCase: sl(),
+    ),
+  );
+  sl.registerLazySingleton(() => GetChatHistoryUseCase(sl()));
+  sl.registerLazySingleton(() => SendChatMessageUseCase(sl()));
+  sl.registerLazySingleton<ChatRepository>(
+    () => ChatRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton<ChatRemoteDataSource>(
+    () => ChatRemoteDataSourceImpl(
       dio: sl<DioClient>().dio,
       errorMapper: sl(),
     ),

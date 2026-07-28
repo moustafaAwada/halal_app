@@ -96,7 +96,7 @@ class RestaurantTile extends StatelessWidget {
             ),
           ),
           const Icon(
-            Icons.arrow_back_ios_new_rounded,
+            Icons.arrow_back_ios,
             color: AppColors.primaryBlue,
             size: 18,
           ),

@@ -151,7 +151,7 @@ class _RestaurantDetailContentState extends State<_RestaurantDetailContent> {
                       ),
                       child: IconButton(
                         icon: const Icon(
-                          Icons.arrow_back_ios_new_rounded,
+                          Icons.arrow_back_ios,
                           color: Colors.white,
                           size: 20,
                         ),

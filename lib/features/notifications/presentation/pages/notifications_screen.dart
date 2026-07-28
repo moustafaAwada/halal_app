@@ -47,7 +47,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
+            icon: const Icon(Icons.arrow_back_ios, size: 18),
             color: Colors.black87,
             onPressed: () => Navigator.of(context).maybePop(),
           ),

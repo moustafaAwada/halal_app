@@ -13,11 +13,13 @@ class ProductCard extends StatelessWidget {
     super.key,
     required this.product,
     this.onTap,
+    this.onAddToCart,
     this.fullWidth = false,
   });
 
   final Product product;
   final VoidCallback? onTap;
+  final VoidCallback? onAddToCart;
   final bool fullWidth;
 
   @override
@@ -123,17 +125,21 @@ class ProductCard extends StatelessWidget {
                   style: AppTextStyles.skipButton(color: AppColors.primaryBlue),
                 ),
               ),
-              Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryBlue.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.add,
-                  color: AppColors.primaryBlue,
-                  size: 18,
+              Material(
+                color: AppColors.primaryBlue.withValues(alpha: 0.12),
+                shape: const CircleBorder(),
+                child: InkWell(
+                  onTap: onAddToCart,
+                  customBorder: const CircleBorder(),
+                  child: const SizedBox(
+                    width: 30,
+                    height: 30,
+                    child: Icon(
+                      Icons.add,
+                      color: AppColors.primaryBlue,
+                      size: 18,
+                    ),
+                  ),
                 ),
               ),
             ],

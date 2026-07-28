@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/snackbar_utils.dart';
+import '../../../home/presentation/pages/product_detail_page.dart';
 import '../../../home/presentation/widgets/home_shimmer.dart';
 import '../../../cart/presentation/cubit/cart_cubit.dart';
 import '../../domain/entities/favorite_item.dart';
@@ -205,6 +206,11 @@ class _FavoritesList extends StatelessWidget {
           final item = favorites[index];
           return FavoriteProductCard(
             item: item,
+            onTap: () => openProductDetail(
+              context,
+              itemId: item.menuId,
+              isOffer: false,
+            ),
             onRemove: () =>
                 context.read<FavoritesCubit>().removeFavorite(item.id),
             onAddToCart: () async {

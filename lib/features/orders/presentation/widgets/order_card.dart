@@ -85,7 +85,7 @@ class OrderCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   const Icon(
-                    Icons.arrow_back_ios_new_rounded,
+                    Icons.arrow_back_ios,
                     size: 14,
                     color: AppColors.primaryBlue,
                   ),

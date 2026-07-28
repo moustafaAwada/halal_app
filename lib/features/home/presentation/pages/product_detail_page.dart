@@ -171,10 +171,21 @@ class _ProductDetailContent extends StatelessWidget {
                     expandedHeight: 260,
                     pinned: true,
                     backgroundColor: AppColors.white,
-                    foregroundColor: Colors.black87,
-                    leading: IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                      onPressed: () => Navigator.of(context).pop(),
+                    foregroundColor: AppColors.white,
+                    leading: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Material(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        shape: const CircleBorder(),
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back_ios,
+                            color: AppColors.white,
+                            size: 18,
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ),
                     ),
                     flexibleSpace: FlexibleSpaceBar(
                       background: _ProductImage(url: detail.image),

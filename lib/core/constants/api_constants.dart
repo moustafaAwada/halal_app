@@ -29,16 +29,22 @@ abstract final class ApiConstants {
   static String updateUserProfile(int id) => '/update/$id';
   static String orderDetails(int id) => '/order-details/$id';
 
-  /// GET all notifications for a client.
   static String notificationsByClientId(int clientId) =>
       '/notification/$clientId';
 
-  /// GET unread notifications (`read=false`).
-  /// Despite the `/readed` path, the API returns unread items.
+
   static String unreadNotificationsByClientId(int clientId) =>
       '/notification/$clientId/readed';
 
-  /// GET used to mark a notification as read (backend update-via-GET contract).
   static String markNotificationAsRead(int notificationId) =>
       '/notification/read/$notificationId';
+
+  /// Customer support chat API (different base path than /client).
+  /// Customer identity comes from the JWT Bearer token.
+  static const customerChatBaseUrl =
+      'https://e-commerce.server.intelakah.com/api/v1/customer-chat';
+
+  static const sendChatMessageUrl = '$customerChatBaseUrl/customer/message';
+
+  static const chatHistoryUrl = '$customerChatBaseUrl/customer/history';
 }

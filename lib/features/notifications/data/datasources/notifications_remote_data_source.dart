@@ -7,10 +7,8 @@ import '../models/notification_model.dart';
 abstract class NotificationsRemoteDataSource {
   Future<List<NotificationModel>> getAllNotifications(int clientId);
 
-  /// Despite the `/readed` path segment, the API returns **unread** items.
   Future<List<NotificationModel>> getUnreadNotifications(int clientId);
 
-  /// Uses GET (not PATCH/PUT) to update read status per current backend contract.
   Future<String> markAsRead(int notificationId);
 }
 
