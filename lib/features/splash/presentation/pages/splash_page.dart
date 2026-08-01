@@ -105,7 +105,7 @@ class _SplashPageState extends State<SplashPage>
       final isLoggedIn = results[0] as bool;
 
       if (isLoggedIn) {
-        AppRouter.goToHome(context);
+        AppRouter.goToServiceSelection(context);
       } else {
         AppRouter.goToOnboarding(context);
       }

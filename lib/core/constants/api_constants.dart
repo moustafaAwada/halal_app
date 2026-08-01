@@ -47,4 +47,27 @@ abstract final class ApiConstants {
   static const sendChatMessageUrl = '$customerChatBaseUrl/customer/message';
 
   static const chatHistoryUrl = '$customerChatBaseUrl/customer/history';
+
+  /// Trip Management API (different base path than /client).
+  /// JWT Bearer token is still attached via [AuthInterceptor].
+  static const tripsBaseUrl =
+      'https://e-commerce.server.intelakah.com/api/v1/trips';
+
+  static const requestTripUrl = '$tripsBaseUrl/request';
+
+  static String acceptTripUrl(int tripId) => '$tripsBaseUrl/$tripId/accept';
+
+  static String driverArrivedUrl(int tripId) => '$tripsBaseUrl/$tripId/arrive';
+
+  static String startTripUrl(int tripId) => '$tripsBaseUrl/$tripId/start';
+
+  static String tripTrackingUrl(int tripId) =>
+      '$tripsBaseUrl/$tripId/tracking';
+
+  static String completeTripUrl(int tripId) =>
+      '$tripsBaseUrl/$tripId/complete';
+
+  static String cancelTripUrl(int tripId) => '$tripsBaseUrl/$tripId/cancel';
+
+  static String rateTripUrl(int tripId) => '$tripsBaseUrl/$tripId/rate';
 }

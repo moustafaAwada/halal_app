@@ -74,6 +74,18 @@ import '../../features/search/data/repositories/search_repository_impl.dart';
 import '../../features/search/domain/repositories/search_repository.dart';
 import '../../features/search/domain/usecases/search_products.dart';
 import '../../features/search/presentation/cubit/search_cubit.dart';
+import '../../features/trip/data/datasources/trip_remote_data_source.dart';
+import '../../features/trip/data/repositories/trip_repository_impl.dart';
+import '../../features/trip/domain/repositories/trip_repository.dart';
+import '../../features/trip/domain/usecases/accept_trip.dart';
+import '../../features/trip/domain/usecases/cancel_trip.dart';
+import '../../features/trip/domain/usecases/complete_trip.dart';
+import '../../features/trip/domain/usecases/driver_arrived.dart';
+import '../../features/trip/domain/usecases/rate_trip.dart';
+import '../../features/trip/domain/usecases/request_trip.dart';
+import '../../features/trip/domain/usecases/start_trip.dart';
+import '../../features/trip/domain/usecases/update_tracking.dart';
+import '../../features/trip/presentation/cubit/trip_cubit.dart';
 import '../network/dio_client.dart';
 import '../network/dio_error_mapper.dart';
 import '../storage/secure_storage_service.dart';
@@ -96,6 +108,7 @@ Future<void> initDependencies() async {
   _initOrders();
   _initNotifications();
   _initChat();
+  _initTrip();
   _initOnboarding();
 }
 
@@ -313,6 +326,40 @@ void _initChat() {
   );
   sl.registerLazySingleton<ChatRemoteDataSource>(
     () => ChatRemoteDataSourceImpl(
+      dio: sl<DioClient>().dio,
+      errorMapper: sl(),
+    ),
+  );
+}
+
+void _initTrip() {
+  sl.registerFactory(
+    () => TripCubit(
+      requestTripUseCase: sl(),
+      cancelTripUseCase: sl(),
+      rateTripUseCase: sl(),
+      acceptTripUseCase: sl(),
+      driverArrivedUseCase: sl(),
+      startTripUseCase: sl(),
+      updateTrackingUseCase: sl(),
+      completeTripUseCase: sl(),
+    ),
+  );
+
+  sl.registerLazySingleton(() => RequestTripUseCase(sl()));
+  sl.registerLazySingleton(() => CancelTripUseCase(sl()));
+  sl.registerLazySingleton(() => RateTripUseCase(sl()));
+  sl.registerLazySingleton(() => AcceptTripUseCase(sl()));
+  sl.registerLazySingleton(() => DriverArrivedUseCase(sl()));
+  sl.registerLazySingleton(() => StartTripUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateTrackingUseCase(sl()));
+  sl.registerLazySingleton(() => CompleteTripUseCase(sl()));
+
+  sl.registerLazySingleton<TripRepository>(
+    () => TripRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton<TripRemoteDataSource>(
+    () => TripRemoteDataSourceImpl(
       dio: sl<DioClient>().dio,
       errorMapper: sl(),
     ),

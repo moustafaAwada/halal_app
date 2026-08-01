@@ -60,7 +60,7 @@ class _LoginPageState extends State<LoginPage> {
         if (state is LoginError) {
           SnackbarUtils.showErrorSnackBar(context, state.message);
         } else if (state is LoginSuccess) {
-          AppRouter.goToHome(context);
+          AppRouter.goToServiceSelection(context);
         }
       },
       child: AuthScaffold(

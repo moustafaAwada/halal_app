@@ -11,7 +11,10 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/main/presentation/pages/main_shell_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
+import '../../features/service_selection/presentation/pages/service_selection_screen.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
+import '../../features/trip/presentation/cubit/trip_cubit.dart';
+import '../../features/trip/presentation/pages/trip_screen.dart';
 import 'app_routes.dart';
 
 /// Central route table for the application.
@@ -56,8 +59,19 @@ class AppRouter {
           ),
           settings: settings,
         ),
+      AppRoutes.serviceSelection => MaterialPageRoute<void>(
+          builder: (_) => const ServiceSelectionScreen(),
+          settings: settings,
+        ),
       AppRoutes.home => MaterialPageRoute<void>(
           builder: (_) => const MainShellPage(),
+          settings: settings,
+        ),
+      AppRoutes.trip => MaterialPageRoute<void>(
+          builder: (_) => BlocProvider(
+            create: (_) => sl<TripCubit>(),
+            child: const TripScreen(),
+          ),
           settings: settings,
         ),
       _ => MaterialPageRoute<void>(
@@ -94,10 +108,22 @@ class AppRouter {
     );
   }
 
+  /// Post-auth gateway: Food Delivery vs Request a Ride.
+  static void goToServiceSelection(BuildContext context) {
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      AppRoutes.serviceSelection,
+      (_) => false,
+    );
+  }
+
   static void goToHome(BuildContext context) {
     Navigator.of(context).pushNamedAndRemoveUntil(
       AppRoutes.home,
       (_) => false,
     );
+  }
+
+  static void goToTrip(BuildContext context) {
+    Navigator.of(context).pushNamed(AppRoutes.trip);
   }
 }
