@@ -1,3 +1,4 @@
+import '../../../../core/utils/json_parsers.dart';
 import '../../domain/entities/trip.dart';
 import '../../domain/entities/trip_status.dart';
 
@@ -16,23 +17,31 @@ class TripModel extends Trip {
     super.fareAmount,
     super.distanceKm,
     super.durationMinutes,
+    super.isPrebooking,
+    super.prebookingTime,
   });
 
   factory TripModel.fromJson(Map<String, dynamic> json) {
     return TripModel(
-      id: _asInt(json['id']) ?? 0,
+      id: JsonParsers.toInt(json['id']),
       status: TripStatus.fromApi(json['status']?.toString()),
-      pickupLat: _asDouble(json['pickupLat']),
-      pickupLng: _asDouble(json['pickupLng']),
+      pickupLat: _asNullableDouble(json['pickupLat']),
+      pickupLng: _asNullableDouble(json['pickupLng']),
       pickupAddress: json['pickupAddress']?.toString(),
-      dropoffLat: _asDouble(json['dropoffLat']),
-      dropoffLng: _asDouble(json['dropoffLng']),
+      dropoffLat: _asNullableDouble(json['dropoffLat']),
+      dropoffLng: _asNullableDouble(json['dropoffLng']),
       dropoffAddress: json['dropoffAddress']?.toString(),
       vehicleType: json['vehicleType']?.toString(),
       paymentMethod: json['paymentMethod']?.toString(),
-      fareAmount: _asDouble(json['fareAmount']),
-      distanceKm: _asDouble(json['distanceKm']),
-      durationMinutes: _asInt(json['durationMinutes']),
+      fareAmount: _asNullableDouble(json['fareAmount']),
+      distanceKm: _asNullableDouble(json['distanceKm']),
+      durationMinutes: _asNullableInt(json['durationMinutes']),
+      isPrebooking: JsonParsers.toBool(
+        json['is_prebooking'] ?? json['isPrebooking'],
+      ),
+      prebookingTime: _asDateTime(
+        json['prebooking_time'] ?? json['prebookingTime'],
+      ),
     );
   }
 
@@ -51,6 +60,9 @@ class TripModel extends Trip {
       if (fareAmount != null) 'fareAmount': fareAmount,
       if (distanceKm != null) 'distanceKm': distanceKm,
       if (durationMinutes != null) 'durationMinutes': durationMinutes,
+      'is_prebooking': isPrebooking,
+      if (prebookingTime != null)
+        'prebooking_time': _toApiDateTime(prebookingTime!),
     };
   }
 
@@ -68,19 +80,43 @@ class TripModel extends Trip {
         fareAmount: fareAmount,
         distanceKm: distanceKm,
         durationMinutes: durationMinutes,
+        isPrebooking: isPrebooking,
+        prebookingTime: prebookingTime,
       );
 
-  static int? _asInt(dynamic value) {
-    if (value is int) return value;
-    if (value is num) return value.toInt();
-    if (value is String) return int.tryParse(value);
-    return null;
-  }
-
-  static double? _asDouble(dynamic value) {
+  static double? _asNullableDouble(dynamic value) {
+    if (value == null) return null;
     if (value is double) return value;
     if (value is num) return value.toDouble();
     if (value is String) return double.tryParse(value);
     return null;
+  }
+
+  static int? _asNullableInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) {
+      return int.tryParse(value) ?? double.tryParse(value)?.toInt();
+    }
+    return null;
+  }
+
+  static DateTime? _asDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    if (value is String && value.isNotEmpty) {
+      return DateTime.tryParse(value);
+    }
+    return null;
+  }
+
+  static String _toApiDateTime(DateTime value) {
+    final iso = value.toUtc().toIso8601String();
+    if (iso.endsWith('Z')) return iso;
+    if (iso.endsWith('+00:00')) {
+      return '${iso.substring(0, iso.length - 6)}Z';
+    }
+    return '${iso}Z';
   }
 }

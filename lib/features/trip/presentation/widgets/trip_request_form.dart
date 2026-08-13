@@ -42,6 +42,8 @@ class _TripRequestFormState extends State<TripRequestForm> {
 
   String _vehicleType = 'car';
   String _paymentMethod = 'cash';
+  bool _isPrebooking = false;
+  DateTime? _prebookingTime;
   bool _isLocatingPickup = false;
   bool _isSearchingDropoff = false;
   bool _isResolvingDropoff = false;
@@ -326,6 +328,21 @@ class _TripRequestFormState extends State<TripRequestForm> {
       return;
     }
 
+    if (_isPrebooking) {
+      final scheduled = _prebookingTime;
+      if (scheduled == null) {
+        SnackbarUtils.showErrorSnackBar(context, 'اختر وقت الحجز المسبق');
+        return;
+      }
+      if (!scheduled.isAfter(DateTime.now())) {
+        SnackbarUtils.showErrorSnackBar(
+          context,
+          'يجب أن يكون وقت الحجز في المستقبل',
+        );
+        return;
+      }
+    }
+
     final distanceKm = double.parse((_distanceKm ?? 0).toStringAsFixed(2));
 
     widget.onSubmit({
@@ -340,7 +357,66 @@ class _TripRequestFormState extends State<TripRequestForm> {
       'fareAmount': double.parse(_estimatedFare.toStringAsFixed(0)),
       'distanceKm': distanceKm,
       'durationMinutes': _estimatedMinutes,
+      'is_prebooking': _isPrebooking,
+      if (_isPrebooking && _prebookingTime != null)
+        'prebooking_time': _toApiPrebookingTime(_prebookingTime!),
     });
+  }
+
+  Future<void> _pickPrebookingTime() async {
+    final now = DateTime.now();
+    final initial = _prebookingTime ?? now.add(const Duration(hours: 1));
+
+    final date = await showDatePicker(
+      context: context,
+      initialDate: initial.isBefore(now) ? now : initial,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 30)),
+    );
+    if (date == null || !mounted) return;
+
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initial),
+    );
+    if (time == null || !mounted) return;
+
+    final selected = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+    );
+
+    if (!selected.isAfter(DateTime.now())) {
+      SnackbarUtils.showErrorSnackBar(
+        context,
+        'يجب أن يكون وقت الحجز في المستقبل',
+      );
+      return;
+    }
+
+    setState(() => _prebookingTime = selected);
+  }
+
+  String _toApiPrebookingTime(DateTime value) {
+    final iso = value.toUtc().toIso8601String();
+    if (iso.endsWith('Z')) return iso;
+    if (iso.endsWith('+00:00')) {
+      return '${iso.substring(0, iso.length - 6)}Z';
+    }
+    return '${iso}Z';
+  }
+
+  String _formatPrebookingTime(DateTime value) {
+    final local = value.toLocal();
+    final dd = local.day.toString().padLeft(2, '0');
+    final mm = local.month.toString().padLeft(2, '0');
+    final yyyy = local.year.toString();
+    final hh = local.hour.toString().padLeft(2, '0');
+    final min = local.minute.toString().padLeft(2, '0');
+    return '$dd/$mm/$yyyy  $hh:$min';
   }
 
   @override
@@ -443,12 +519,114 @@ class _TripRequestFormState extends State<TripRequestForm> {
               ),
             ],
           ),
+          const SizedBox(height: 16),
+          _PrebookingSection(
+            isPrebooking: _isPrebooking,
+            formattedTime: _prebookingTime == null
+                ? null
+                : _formatPrebookingTime(_prebookingTime!),
+            onToggle: (value) {
+              setState(() {
+                _isPrebooking = value;
+                if (!value) _prebookingTime = null;
+              });
+            },
+            onPickTime: _pickPrebookingTime,
+          ),
           const SizedBox(height: 24),
           PrimaryButton(
-            label: widget.isLoading ? 'جاري الطلب...' : 'طلب رحلة',
+            label: widget.isLoading
+                ? 'جاري الطلب...'
+                : (_isPrebooking ? 'حجز رحلة' : 'طلب رحلة'),
             isLoading: widget.isLoading,
             onPressed: widget.isLoading ? null : _submit,
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PrebookingSection extends StatelessWidget {
+  const _PrebookingSection({
+    required this.isPrebooking,
+    required this.formattedTime,
+    required this.onToggle,
+    required this.onPickTime,
+  });
+
+  final bool isPrebooking;
+  final String? formattedTime;
+  final ValueChanged<bool> onToggle;
+  final VoidCallback onPickTime;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.searchBackground,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'حجز مسبق',
+                  style: AppTextStyles.skipButton(color: Colors.black87),
+                  textAlign: TextAlign.right,
+                ),
+              ),
+              Switch.adaptive(
+                value: isPrebooking,
+                activeThumbColor: AppColors.primaryBlue,
+                onChanged: onToggle,
+              ),
+            ],
+          ),
+          if (isPrebooking) ...[
+            const SizedBox(height: 8),
+            Material(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(12),
+              child: InkWell(
+                onTap: onPickTime,
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 14,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.schedule_rounded,
+                        color: AppColors.primaryBlue,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          formattedTime ?? 'اختر وقت الحجز',
+                          style: AppTextStyles.onboardingSubtitle(
+                            color: formattedTime == null
+                                ? AppColors.subtitleGrey
+                                : Colors.black87,
+                          ),
+                          textAlign: TextAlign.right,
+                        ),
+                      ),
+                      const Icon(
+                        Icons.chevron_left,
+                        color: AppColors.subtitleGrey,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

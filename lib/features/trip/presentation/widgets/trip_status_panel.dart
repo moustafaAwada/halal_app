@@ -79,6 +79,37 @@ class TripStatusPanel extends StatelessWidget {
                 style: AppTextStyles.onboardingSubtitle(),
                 textAlign: TextAlign.center,
               ),
+              if (trip.isPrebooking && trip.prebookingTime != null) ...[
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.reviewsBackground,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.schedule_rounded,
+                        size: 18,
+                        color: AppColors.primaryBlue,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'موعد الحجز: ${_formatLocalDateTime(trip.prebookingTime!)}',
+                        style: AppTextStyles.skipButton(
+                          color: AppColors.primaryBlue,
+                        ).copyWith(fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               if (trip.pickupAddress != null || trip.dropoffAddress != null) ...[
                 const SizedBox(height: 16),
                 const Divider(),
@@ -126,6 +157,16 @@ class TripStatusPanel extends StatelessWidget {
         ],
       ],
     );
+  }
+
+  static String _formatLocalDateTime(DateTime value) {
+    final local = value.toLocal();
+    final dd = local.day.toString().padLeft(2, '0');
+    final mm = local.month.toString().padLeft(2, '0');
+    final yyyy = local.year.toString();
+    final hh = local.hour.toString().padLeft(2, '0');
+    final min = local.minute.toString().padLeft(2, '0');
+    return '$dd/$mm/$yyyy  $hh:$min';
   }
 }
 

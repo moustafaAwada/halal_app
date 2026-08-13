@@ -65,6 +65,14 @@ class TripCubit extends Cubit<TripState> {
     result.fold(
       (failure) => emit(TripError(message: failure.message)),
       (trip) {
+        final isPrebooking = data['is_prebooking'] == true ||
+            data['isPrebooking'] == true ||
+            trip.isPrebooking;
+        final prebookingTime = _asDateTime(
+              data['prebooking_time'] ?? data['prebookingTime'],
+            ) ??
+            trip.prebookingTime;
+
         final enriched = trip.copyWith(
           pickupLat: _asDouble(data['pickupLat']) ?? trip.pickupLat,
           pickupLng: _asDouble(data['pickupLng']) ?? trip.pickupLng,
@@ -81,11 +89,15 @@ class TripCubit extends Cubit<TripState> {
           distanceKm: _asDouble(data['distanceKm']) ?? trip.distanceKm,
           durationMinutes:
               _asInt(data['durationMinutes']) ?? trip.durationMinutes,
+          isPrebooking: isPrebooking,
+          prebookingTime: prebookingTime,
         );
         emit(
           TripRequested(
             trip: enriched,
-            successMessage: 'تم طلب الرحلة بنجاح',
+            successMessage: isPrebooking
+                ? 'تم حجز الرحلة بنجاح'
+                : 'تم طلب الرحلة بنجاح',
           ),
         );
       },
@@ -277,6 +289,14 @@ class TripCubit extends Cubit<TripState> {
     if (value is int) return value;
     if (value is num) return value.toInt();
     if (value is String) return int.tryParse(value);
+    return null;
+  }
+
+  static DateTime? _asDateTime(dynamic value) {
+    if (value is DateTime) return value;
+    if (value is String && value.isNotEmpty) {
+      return DateTime.tryParse(value);
+    }
     return null;
   }
 }

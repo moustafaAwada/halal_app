@@ -17,6 +17,8 @@ class Trip extends Equatable {
     this.fareAmount,
     this.distanceKm,
     this.durationMinutes,
+    this.isPrebooking = false,
+    this.prebookingTime,
   });
 
   final int id;
@@ -32,6 +34,8 @@ class Trip extends Equatable {
   final double? fareAmount;
   final double? distanceKm;
   final int? durationMinutes;
+  final bool isPrebooking;
+  final DateTime? prebookingTime;
 
   Trip copyWith({
     int? id,
@@ -47,6 +51,8 @@ class Trip extends Equatable {
     double? fareAmount,
     double? distanceKm,
     int? durationMinutes,
+    bool? isPrebooking,
+    DateTime? prebookingTime,
   }) {
     return Trip(
       id: id ?? this.id,
@@ -62,6 +68,8 @@ class Trip extends Equatable {
       fareAmount: fareAmount ?? this.fareAmount,
       distanceKm: distanceKm ?? this.distanceKm,
       durationMinutes: durationMinutes ?? this.durationMinutes,
+      isPrebooking: isPrebooking ?? this.isPrebooking,
+      prebookingTime: prebookingTime ?? this.prebookingTime,
     );
   }
 
@@ -80,5 +88,7 @@ class Trip extends Equatable {
         fareAmount,
         distanceKm,
         durationMinutes,
+        isPrebooking,
+        prebookingTime,
       ];
 }
