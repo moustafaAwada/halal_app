@@ -39,8 +39,7 @@ abstract final class ApiConstants {
   static String markNotificationAsRead(int notificationId) =>
       '/notification/read/$notificationId';
 
-  /// Customer support chat API (different base path than /client).
-  /// Customer identity comes from the JWT Bearer token.
+
   static const customerChatBaseUrl =
       'https://e-commerce.server.intelakah.com/api/v1/customer-chat';
 
@@ -48,8 +47,7 @@ abstract final class ApiConstants {
 
   static const chatHistoryUrl = '$customerChatBaseUrl/customer/history';
 
-  /// Trip Management API (different base path than /client).
-  /// JWT Bearer token is still attached via [AuthInterceptor].
+
   static const tripsBaseUrl =
       'https://e-commerce.server.intelakah.com/api/v1/trips';
 
@@ -70,4 +68,10 @@ abstract final class ApiConstants {
   static String cancelTripUrl(int tripId) => '$tripsBaseUrl/$tripId/cancel';
 
   static String rateTripUrl(int tripId) => '$tripsBaseUrl/$tripId/rate';
+
+  static String rateOrderUrl(int orderId) =>
+      '$menuBaseUrl/orders/$orderId/rate';
+
+  static String rateDeliveryUrl(int orderId) =>
+      '$menuBaseUrl/delivery/orders/$orderId/rate';
 }

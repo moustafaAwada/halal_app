@@ -264,7 +264,8 @@ void _openProductDetail(
   openProductDetail(
     context,
     itemId: product.id,
-    isOffer: isOffer,
+    isOffer: isOffer || product.isOffer,
+    product: product,
   );
 }
 

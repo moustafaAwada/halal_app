@@ -9,6 +9,7 @@ import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/snackbar_utils.dart';
 import '../../../cart/presentation/cubit/cart_cubit.dart';
 import '../../../favorites/presentation/cubit/favorites_cubit.dart';
+import '../../domain/entities/product.dart';
 import '../../domain/entities/product_detail.dart';
 import '../cubit/product_detail_cubit.dart';
 import '../widgets/home_shimmer.dart';
@@ -17,6 +18,7 @@ void openProductDetail(
   BuildContext context, {
   required int itemId,
   required bool isOffer,
+  Product? product,
 }) {
   final favoritesCubit = context.read<FavoritesCubit>();
   final cartCubit = context.read<CartCubit>();
@@ -31,6 +33,7 @@ void openProductDetail(
         child: ProductDetailPage(
           itemId: itemId,
           isOffer: isOffer,
+          product: product,
         ),
       ),
     ),
@@ -42,16 +45,20 @@ class ProductDetailPage extends StatelessWidget {
     super.key,
     required this.itemId,
     this.isOffer = false,
+    this.product,
   });
 
   final int itemId;
   final bool isOffer;
+  final Product? product;
 
   @override
   Widget build(BuildContext context) {
+    final seed = product == null ? null : ProductDetail.fromProduct(product!);
+
     return BlocProvider(
       create: (_) => sl<ProductDetailCubit>()
-        ..load(id: itemId, isOffer: isOffer),
+        ..load(id: itemId, isOffer: isOffer, seed: seed),
       child: _ProductDetailView(
         itemId: itemId,
         isOffer: isOffer,
@@ -146,6 +153,7 @@ class _ProductDetailContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final oldPrice = detail.displayPriceBeforeDiscount;
+    final vendor = detail.vendor;
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -163,7 +171,8 @@ class _ProductDetailContent extends StatelessWidget {
               final favoriteMenuIds = favoritesState is FavoritesLoaded
                   ? favoritesState.favorites.map((item) => item.menuId).toSet()
                   : <int>{};
-              final isFavorite = favoriteMenuIds.contains(detail.id);
+              final isFavorite = favoriteMenuIds.contains(detail.id) ||
+                  (favoritesState is! FavoritesLoaded && detail.isFavorite);
 
               return CustomScrollView(
                 slivers: [
@@ -257,6 +266,20 @@ class _ProductDetailContent extends StatelessWidget {
                               ),
                             ],
                           ),
+                          const SizedBox(height: 12),
+                          _RatingSoldRow(
+                            rating: detail.rating,
+                            reviewCount: detail.reviewCount,
+                            totalSold: detail.totalSold,
+                          ),
+                          if (vendor != null) ...[
+                            const SizedBox(height: 16),
+                            _VendorTile(
+                              name: vendor.displayName,
+                              imageUrl: vendor.imageUrl,
+                              avgRating: vendor.avgRating,
+                            ),
+                          ],
                           if (detail.description.isNotEmpty) ...[
                             const SizedBox(height: 12),
                             Text(
@@ -272,8 +295,8 @@ class _ProductDetailContent extends StatelessWidget {
                                 vertical: 8,
                               ),
                               decoration: BoxDecoration(
-                                color:
-                                    AppColors.badgeYellow.withValues(alpha: 0.2),
+                                color: AppColors.badgeYellow
+                                    .withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
@@ -297,6 +320,14 @@ class _ProductDetailContent extends StatelessWidget {
                               icon: Icons.history,
                               label: 'السعر قبل الخصم',
                               value: Formatters.formatPrice(oldPrice),
+                            ),
+                          ],
+                          if (detail.totalSold > 0) ...[
+                            const SizedBox(height: 12),
+                            _InfoTile(
+                              icon: Icons.shopping_bag_outlined,
+                              label: 'تم البيع',
+                              value: '${detail.totalSold}',
                             ),
                           ],
                           const SizedBox(height: 28),
@@ -337,6 +368,139 @@ class _ProductDetailContent extends StatelessWidget {
             },
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _RatingSoldRow extends StatelessWidget {
+  const _RatingSoldRow({
+    required this.rating,
+    required this.reviewCount,
+    required this.totalSold,
+  });
+
+  final double rating;
+  final int reviewCount;
+  final int totalSold;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 16,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.star_rounded,
+              color: AppColors.badgeYellow,
+              size: 20,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              rating.toStringAsFixed(1),
+              style: AppTextStyles.skipButton(color: Colors.black87),
+            ),
+            if (reviewCount > 0) ...[
+              const SizedBox(width: 4),
+              Text(
+                '($reviewCount تقييم)',
+                style: AppTextStyles.onboardingSubtitle(),
+              ),
+            ],
+          ],
+        ),
+        if (totalSold > 0)
+          Text(
+            '$totalSold مبيعات',
+            style: AppTextStyles.onboardingSubtitle(color: Colors.black87),
+          ),
+      ],
+    );
+  }
+}
+
+class _VendorTile extends StatelessWidget {
+  const _VendorTile({
+    required this.name,
+    required this.imageUrl,
+    required this.avgRating,
+  });
+
+  final String name;
+  final String imageUrl;
+  final double avgRating;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.searchBackground,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: imageUrl.isEmpty
+                  ? Container(
+                      color: AppColors.inactiveDot,
+                      child: const Icon(Icons.storefront_outlined),
+                    )
+                  : CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (_, _) =>
+                          Container(color: AppColors.inactiveDot),
+                      errorWidget: (_, _, _) => Container(
+                        color: AppColors.inactiveDot,
+                        child: const Icon(Icons.storefront_outlined),
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'البائع',
+                  style: AppTextStyles.onboardingSubtitle(),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  name,
+                  style: AppTextStyles.skipButton(color: Colors.black87),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.star_rounded,
+                      color: AppColors.badgeYellow,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      avgRating.toStringAsFixed(1),
+                      style: AppTextStyles.onboardingSubtitle(
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -11,6 +11,9 @@ class ProductOfferModel extends ProductOffer {
     required super.rating,
     required super.isFavorite,
     required super.totalSold,
+    super.type,
+    super.reviewCount,
+    super.vendor,
     required super.oldPrice,
     required super.discount,
   });
@@ -30,6 +33,9 @@ class ProductOfferModel extends ProductOffer {
       rating: product.rating,
       isFavorite: product.isFavorite,
       totalSold: product.totalSold,
+      type: product.type,
+      reviewCount: product.reviewCount,
+      vendor: product.vendor,
       oldPrice: oldPrice,
       discount: discount,
     );
@@ -58,6 +64,9 @@ class ProductOfferModel extends ProductOffer {
         rating: rating,
         isFavorite: isFavorite,
         totalSold: totalSold,
+        type: type,
+        reviewCount: reviewCount,
+        vendor: vendor,
         oldPrice: oldPrice,
         discount: discount,
       );

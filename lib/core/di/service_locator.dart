@@ -56,12 +56,18 @@ import '../../features/notifications/domain/usecases/mark_notification_as_read.d
 import '../../features/notifications/presentation/cubit/notifications_cubit.dart';
 import '../../features/notifications/presentation/cubit/unread_notifications_cubit.dart';
 import '../../features/orders/data/datasources/orders_remote_data_source.dart';
+import '../../features/orders/data/datasources/rating_remote_data_source.dart';
 import '../../features/orders/data/repositories/orders_repository_impl.dart';
+import '../../features/orders/data/repositories/rating_repository_impl.dart';
 import '../../features/orders/domain/repositories/orders_repository.dart';
+import '../../features/orders/domain/repositories/rating_repository.dart';
 import '../../features/orders/domain/usecases/get_order_details.dart';
 import '../../features/orders/domain/usecases/get_orders.dart';
+import '../../features/orders/domain/usecases/rate_delivery.dart';
+import '../../features/orders/domain/usecases/rate_order.dart';
 import '../../features/orders/presentation/cubit/order_details_cubit.dart';
 import '../../features/orders/presentation/cubit/orders_cubit.dart';
+import '../../features/orders/presentation/cubit/rating_cubit.dart';
 import '../../features/profile/data/datasources/profile_remote_data_source.dart';
 import '../../features/profile/data/repositories/profile_repository_impl.dart';
 import '../../features/profile/domain/repositories/profile_repository.dart';
@@ -270,13 +276,30 @@ void _initOrders() {
   sl.registerFactory(
     () => OrderDetailsCubit(getOrderDetailsUseCase: sl()),
   );
+  sl.registerFactory(
+    () => RatingCubit(
+      rateOrderUseCase: sl(),
+      rateDeliveryUseCase: sl(),
+    ),
+  );
   sl.registerLazySingleton(() => GetOrdersUseCase(sl()));
   sl.registerLazySingleton(() => GetOrderDetailsUseCase(sl()));
+  sl.registerLazySingleton(() => RateOrderUseCase(sl()));
+  sl.registerLazySingleton(() => RateDeliveryUseCase(sl()));
   sl.registerLazySingleton<OrdersRepository>(
     () => OrdersRepositoryImpl(remoteDataSource: sl()),
   );
+  sl.registerLazySingleton<RatingRepository>(
+    () => RatingRepositoryImpl(remoteDataSource: sl()),
+  );
   sl.registerLazySingleton<OrdersRemoteDataSource>(
     () => OrdersRemoteDataSourceImpl(
+      dio: sl<DioClient>().dio,
+      errorMapper: sl(),
+    ),
+  );
+  sl.registerLazySingleton<RatingRemoteDataSource>(
+    () => RatingRemoteDataSourceImpl(
       dio: sl<DioClient>().dio,
       errorMapper: sl(),
     ),

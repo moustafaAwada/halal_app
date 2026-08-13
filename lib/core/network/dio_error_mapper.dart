@@ -46,8 +46,10 @@ class DioErrorMapper {
     return switch (statusCode) {
       400 => ServerFailure(message: message ?? 'البيانات المدخلة غير صحيحة'),
       401 => ServerFailure(message: message ?? 'بيانات الدخول غير صحيحة'),
+      403 => ServerFailure(message: message ?? 'غير مصرح لك بتنفيذ هذا الإجراء'),
       404 => ServerFailure(message: message ?? 'المستخدم غير موجود'),
       409 => ServerFailure(message: message ?? 'البريد الإلكتروني مستخدم بالفعل'),
+      500 => ServerFailure(message: message ?? 'حدث خطأ في الخادم'),
       _ => ServerFailure(message: message ?? 'حدث خطأ في الخادم'),
     };
   }

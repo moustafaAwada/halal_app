@@ -9,6 +9,9 @@ class ProductOffer extends Product {
     required super.rating,
     required super.isFavorite,
     required super.totalSold,
+    super.type,
+    super.reviewCount,
+    super.vendor,
     required this.oldPrice,
     required this.discount,
   });

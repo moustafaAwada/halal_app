@@ -4,12 +4,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/snackbar_utils.dart';
+import '../../../../core/widgets/primary_button.dart';
 import '../../../home/presentation/widgets/home_shimmer.dart';
 import '../../domain/entities/order_details.dart';
 import '../cubit/order_details_cubit.dart';
 import '../utils/order_status_ui.dart';
 import '../widgets/billing_summary_card.dart';
 import '../widgets/order_items_list.dart';
+import '../widgets/rating_modal_bottom_sheet.dart';
 
 class OrderDetailsScreen extends StatelessWidget {
   const OrderDetailsScreen({super.key, required this.orderId});
@@ -64,10 +66,33 @@ class OrderDetailsScreen extends StatelessWidget {
   }
 }
 
-class _OrderDetailsContent extends StatelessWidget {
+class _OrderDetailsContent extends StatefulWidget {
   const _OrderDetailsContent({required this.details});
 
   final OrderDetails details;
+
+  @override
+  State<_OrderDetailsContent> createState() => _OrderDetailsContentState();
+}
+
+class _OrderDetailsContentState extends State<_OrderDetailsContent> {
+  bool _ratingPromptShown = false;
+
+  OrderDetails get details => widget.details;
+
+  bool get _isDelivered => details.status.toLowerCase() == 'delivered';
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isDelivered) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _ratingPromptShown) return;
+        _ratingPromptShown = true;
+        showRatingModalBottomSheet(context, orderId: details.orderId);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -163,11 +188,16 @@ class _OrderDetailsContent extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.phone_outlined, size: 18, color: AppColors.primaryBlue),
+                  const Icon(
+                    Icons.phone_outlined,
+                    size: 18,
+                    color: AppColors.primaryBlue,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     details.restaurant.phone,
-                    style: AppTextStyles.onboardingSubtitle(color: Colors.black87),
+                    style:
+                        AppTextStyles.onboardingSubtitle(color: Colors.black87),
                   ),
                 ],
               ),
@@ -178,6 +208,16 @@ class _OrderDetailsContent extends StatelessWidget {
         OrderItemsList(items: details.items),
         const SizedBox(height: 16),
         BillingSummaryCard(billing: details.billing),
+        if (_isDelivered) ...[
+          const SizedBox(height: 20),
+          PrimaryButton(
+            label: 'قيّم الطلب',
+            onPressed: () => showRatingModalBottomSheet(
+              context,
+              orderId: details.orderId,
+            ),
+          ),
+        ],
       ],
     );
   }

@@ -18,19 +18,38 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
   final GetProductDetailsUseCase _getProductDetailsUseCase;
   final GetOfferDetailsUseCase _getOfferDetailsUseCase;
 
-  Future<void> load({required int id, required bool isOffer}) async {
-    emit(const ProductDetailLoading());
+  ProductDetail? _seed;
+
+  Future<void> load({
+    required int id,
+    required bool isOffer,
+    ProductDetail? seed,
+  }) async {
+    _seed = seed;
+
+    if (seed != null) {
+      emit(ProductDetailLoaded(detail: seed));
+    } else {
+      emit(const ProductDetailLoading());
+    }
 
     final result = isOffer
         ? await _getOfferDetailsUseCase(OfferDetailsParams(id: id))
         : await _getProductDetailsUseCase(ProductDetailsParams(id: id));
 
     result.fold(
-      (failure) => emit(ProductDetailError(message: failure.message)),
-      (detail) => emit(ProductDetailLoaded(detail: detail)),
+      (failure) {
+        if (_seed == null) {
+          emit(ProductDetailError(message: failure.message));
+        }
+      },
+      (detail) {
+        final merged = _seed == null ? detail : detail.mergeWith(_seed!);
+        emit(ProductDetailLoaded(detail: merged));
+      },
     );
   }
 
   Future<void> retry({required int id, required bool isOffer}) =>
-      load(id: id, isOffer: isOffer);
+      load(id: id, isOffer: isOffer, seed: _seed);
 }

@@ -1,5 +1,6 @@
 import '../../../../core/utils/json_parsers.dart';
 import '../../domain/entities/product_detail.dart';
+import 'product_vendor_model.dart';
 
 class ProductDetailModel extends ProductDetail {
   const ProductDetailModel({
@@ -13,6 +14,11 @@ class ProductDetailModel extends ProductDetail {
     required super.type,
     super.vendorId,
     super.categoryId,
+    super.rating,
+    super.reviewCount,
+    super.totalSold,
+    super.isFavorite,
+    super.vendor,
   });
 
   factory ProductDetailModel.fromJson(Map<String, dynamic> json) {
@@ -20,7 +26,16 @@ class ProductDetailModel extends ProductDetail {
     final discount = JsonParsers.toDouble(
       json['discount_percentage'] ?? json['discount'],
     ).round();
-    final priceBeforeDiscount = _resolvePriceBeforeDiscount(json, price, discount);
+    final priceBeforeDiscount =
+        _resolvePriceBeforeDiscount(json, price, discount);
+
+    ProductVendorModel? vendor;
+    final vendorJson = json['vendor'];
+    if (vendorJson is Map) {
+      vendor = ProductVendorModel.fromJson(
+        Map<String, dynamic>.from(vendorJson),
+      );
+    }
 
     return ProductDetailModel(
       id: JsonParsers.toInt(json['id']),
@@ -31,12 +46,19 @@ class ProductDetailModel extends ProductDetail {
       priceBeforeDiscount: priceBeforeDiscount,
       discountPercentage: discount,
       type: json['type'] as String? ?? 'normal',
-      vendorId: json['vendor_id'] == null
+      vendorId: json['vendor_id'] == null && vendor == null
           ? null
-          : JsonParsers.toInt(json['vendor_id']),
+          : JsonParsers.toInt(json['vendor_id'] ?? vendor?.id),
       categoryId: json['category_id'] == null
           ? null
           : JsonParsers.toInt(json['category_id']),
+      rating: JsonParsers.toDouble(json['rating'] ?? json['average_rating']),
+      reviewCount: JsonParsers.toInt(
+        json['reviewCount'] ?? json['reviews_count'],
+      ),
+      totalSold: JsonParsers.toInt(json['total_sold']),
+      isFavorite: JsonParsers.toBool(json['isFavorite']),
+      vendor: vendor,
     );
   }
 
@@ -64,5 +86,10 @@ class ProductDetailModel extends ProductDetail {
         type: type,
         vendorId: vendorId,
         categoryId: categoryId,
+        rating: rating,
+        reviewCount: reviewCount,
+        totalSold: totalSold,
+        isFavorite: isFavorite,
+        vendor: vendor,
       );
 }
