@@ -4,7 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/snackbar_utils.dart';
+import '../../../../core/widgets/primary_button.dart';
+import '../../../advanced/presentation/cubit/advanced_cubit.dart';
 import '../cubit/trip_cubit.dart';
+import '../../domain/entities/trip_status.dart';
 import '../widgets/trip_rating_dialog.dart';
 import '../widgets/trip_request_form.dart';
 import '../widgets/trip_status_panel.dart';
@@ -77,39 +80,51 @@ class TripScreen extends StatelessWidget {
         elevation: 0,
       ),
       body: SafeArea(
-        child: BlocListener<TripCubit, TripState>(
-          listenWhen: (previous, current) {
-            if (current is TripError) return true;
-            if (current.successMessage != null) return true;
-            if (current is TripCompleted &&
-                current.ratingSuccessMessage != null) {
-              return true;
-            }
-            return false;
-          },
-          listener: (context, state) {
-            if (state is TripError) {
-              SnackbarUtils.showErrorSnackBar(context, state.message);
-              return;
-            }
-            if (state is TripCompleted &&
-                state.ratingSuccessMessage != null) {
-              SnackbarUtils.showSuccessSnackBar(
-                context,
-                state.ratingSuccessMessage!,
-              );
-              return;
-            }
-            final message = state.successMessage;
-            if (message != null && message.isNotEmpty) {
-              SnackbarUtils.showSuccessSnackBar(context, message);
-            }
-          },
+        child: MultiBlocListener(
+          listeners: [
+            BlocListener<TripCubit, TripState>(
+              listenWhen: (previous, current) {
+                if (current is TripError) return true;
+                if (current.successMessage != null) return true;
+                if (current is TripCompleted &&
+                    current.ratingSuccessMessage != null) {
+                  return true;
+                }
+                return false;
+              },
+              listener: (context, state) {
+                if (state is TripError) {
+                  SnackbarUtils.showErrorSnackBar(context, state.message);
+                  return;
+                }
+                if (state is TripCompleted &&
+                    state.ratingSuccessMessage != null) {
+                  SnackbarUtils.showSuccessSnackBar(
+                    context,
+                    state.ratingSuccessMessage!,
+                  );
+                  return;
+                }
+                final message = state.successMessage;
+                if (message != null && message.isNotEmpty) {
+                  SnackbarUtils.showSuccessSnackBar(context, message);
+                }
+              },
+            ),
+            BlocListener<AdvancedCubit, AdvancedState>(
+              listener: (context, state) {
+                if (state is AdvancedError) {
+                  SnackbarUtils.showErrorSnackBar(context, state.message);
+                } else if (state is AdvancedRebookSuccess) {
+                  SnackbarUtils.showSuccessSnackBar(context, state.message);
+                  context.read<TripCubit>().applyRebookedTrip(state.trip);
+                }
+              },
+            ),
+          ],
           child: Stack(
             children: [
-              // Skip TripLoading so the previous panel stays under the overlay.
               BlocBuilder<TripCubit, TripState>(
-                buildWhen: (previous, current) => current is! TripLoading,
                 builder: (context, state) {
                   return SingleChildScrollView(
                     padding: const EdgeInsets.all(20),
@@ -124,11 +139,13 @@ class TripScreen extends StatelessWidget {
                   if (state is! TripLoading) {
                     return const SizedBox.shrink();
                   }
-                  return const ColoredBox(
-                    color: Color(0x33000000),
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.primaryBlue,
+                  return const AbsorbPointer(
+                    child: ColoredBox(
+                      color: Color(0x33000000),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primaryBlue,
+                        ),
                       ),
                     ),
                   );
@@ -143,25 +160,9 @@ class TripScreen extends StatelessWidget {
 
   Widget _buildBody(BuildContext context, TripState state) {
     return switch (state) {
-      TripInitial() || TripLoading() => TripRequestForm(
+      TripInitial() || TripLoading() || TripError() => _TripRequestSection(
+          state: state,
           onSubmit: (data) => context.read<TripCubit>().requestNewTrip(data),
-        ),
-      TripError(:final message) => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              style: AppTextStyles.onboardingSubtitle(),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            TripRequestForm(
-              onSubmit: (data) =>
-                  context.read<TripCubit>().requestNewTrip(data),
-            ),
-          ],
         ),
       TripRequested(:final trip) => TripStatusPanel(
           trip: trip,
@@ -170,6 +171,23 @@ class TripScreen extends StatelessWidget {
           icon: Icons.hourglass_top_rounded,
           showCancel: true,
           onCancel: () => _cancelTrip(context),
+        ),
+      NoDriverFound(:final trip) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TripStatusPanel(
+              trip: trip,
+              title: TripStatus.noDriverFound.labelAr,
+              subtitle: 'لم نتمكن من العثور على سائق متاح حالياً، حاول مرة أخرى',
+              icon: Icons.person_off_outlined,
+              showCancel: false,
+            ),
+            const SizedBox(height: 20),
+            PrimaryButton(
+              label: 'طلب رحلة جديدة',
+              onPressed: () => context.read<TripCubit>().reset(),
+            ),
+          ],
         ),
       DriverAccepted(:final trip) => TripStatusPanel(
           trip: trip,
@@ -198,13 +216,20 @@ class TripScreen extends StatelessWidget {
         :final trip,
         :final payment,
       ) =>
-        TripCompletedPanel(
-          trip: trip,
-          paymentAmount: payment.amount,
-          paymentMethod: payment.method,
-          paymentStatus: payment.status,
-          onRate: () => _rateTrip(context),
-          onNewTrip: () => context.read<TripCubit>().reset(),
+        BlocBuilder<AdvancedCubit, AdvancedState>(
+          builder: (context, advancedState) {
+            return TripCompletedPanel(
+              trip: trip,
+              paymentAmount: payment.amount,
+              paymentMethod: payment.method,
+              paymentStatus: payment.status,
+              onRate: () => _rateTrip(context),
+              onNewTrip: () => context.read<TripCubit>().reset(),
+              isRebooking: advancedState is AdvancedLoading,
+              onRebook: () =>
+                  context.read<AdvancedCubit>().rebookTrip(trip.id),
+            );
+          },
         ),
       TripCancelled(:final trip) => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -226,5 +251,39 @@ class TripScreen extends StatelessWidget {
           ],
         ),
     };
+  }
+}
+
+class _TripRequestSection extends StatelessWidget {
+  const _TripRequestSection({
+    required this.state,
+    required this.onSubmit,
+  });
+
+  final TripState state;
+  final ValueChanged<Map<String, dynamic>> onSubmit;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (state is TripError) ...[
+          Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
+          const SizedBox(height: 12),
+          Text(
+            (state as TripError).message,
+            style: AppTextStyles.onboardingSubtitle(),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+        ],
+        TripRequestForm(
+          key: const ValueKey('trip_request_form'),
+          isLoading: state is TripLoading,
+          onSubmit: onSubmit,
+        ),
+      ],
+    );
   }
 }

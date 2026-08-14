@@ -80,6 +80,16 @@ import '../../features/search/data/repositories/search_repository_impl.dart';
 import '../../features/search/domain/repositories/search_repository.dart';
 import '../../features/search/domain/usecases/search_products.dart';
 import '../../features/search/presentation/cubit/search_cubit.dart';
+import '../../features/advanced/data/datasources/advanced_remote_data_source.dart';
+import '../../features/advanced/data/repositories/advanced_features_repository_impl.dart';
+import '../../features/advanced/domain/repositories/advanced_features_repository.dart';
+import '../../features/advanced/domain/usecases/advanced_start_trip.dart';
+import '../../features/advanced/domain/usecases/get_high_demand_eta.dart';
+import '../../features/advanced/domain/usecases/get_nearby_trips.dart';
+import '../../features/advanced/domain/usecases/rebook_trip.dart';
+import '../../features/advanced/domain/usecases/verify_and_complete_delivery.dart';
+import '../../features/advanced/presentation/cubit/advanced_cubit.dart';
+import '../../features/advanced/presentation/cubit/eta_cubit.dart';
 import '../../features/trip/data/datasources/trip_remote_data_source.dart';
 import '../../features/trip/data/repositories/trip_repository_impl.dart';
 import '../../features/trip/domain/repositories/trip_repository.dart';
@@ -115,6 +125,7 @@ Future<void> initDependencies() async {
   _initNotifications();
   _initChat();
   _initTrip();
+  _initAdvanced();
   _initOnboarding();
 }
 
@@ -383,6 +394,36 @@ void _initTrip() {
   );
   sl.registerLazySingleton<TripRemoteDataSource>(
     () => TripRemoteDataSourceImpl(
+      dio: sl<DioClient>().dio,
+      errorMapper: sl(),
+    ),
+  );
+}
+
+void _initAdvanced() {
+  sl.registerFactory(
+    () => EtaCubit(getHighDemandEtaUseCase: sl()),
+  );
+  sl.registerFactory(
+    () => AdvancedCubit(
+      rebookTripUseCase: sl(),
+      getNearbyTripsUseCase: sl(),
+      advancedStartTripUseCase: sl(),
+      verifyAndCompleteDeliveryUseCase: sl(),
+    ),
+  );
+
+  sl.registerLazySingleton(() => GetHighDemandEtaUseCase(sl()));
+  sl.registerLazySingleton(() => RebookTripUseCase(sl()));
+  sl.registerLazySingleton(() => GetNearbyTripsUseCase(sl()));
+  sl.registerLazySingleton(() => AdvancedStartTripUseCase(sl()));
+  sl.registerLazySingleton(() => VerifyAndCompleteDeliveryUseCase(sl()));
+
+  sl.registerLazySingleton<AdvancedFeaturesRepository>(
+    () => AdvancedFeaturesRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton<AdvancedRemoteDataSource>(
+    () => AdvancedRemoteDataSourceImpl(
       dio: sl<DioClient>().dio,
       errorMapper: sl(),
     ),

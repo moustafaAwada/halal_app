@@ -25,17 +25,23 @@ class TripModel extends Trip {
     return TripModel(
       id: JsonParsers.toInt(json['id']),
       status: TripStatus.fromApi(json['status']?.toString()),
-      pickupLat: _asNullableDouble(json['pickupLat']),
-      pickupLng: _asNullableDouble(json['pickupLng']),
-      pickupAddress: json['pickupAddress']?.toString(),
-      dropoffLat: _asNullableDouble(json['dropoffLat']),
-      dropoffLng: _asNullableDouble(json['dropoffLng']),
-      dropoffAddress: json['dropoffAddress']?.toString(),
-      vehicleType: json['vehicleType']?.toString(),
-      paymentMethod: json['paymentMethod']?.toString(),
-      fareAmount: _asNullableDouble(json['fareAmount']),
-      distanceKm: _asNullableDouble(json['distanceKm']),
-      durationMinutes: _asNullableInt(json['durationMinutes']),
+      pickupLat: _asNullableDouble(json['pickupLat'] ?? json['pickup_lat']),
+      pickupLng: _asNullableDouble(json['pickupLng'] ?? json['pickup_lng']),
+      pickupAddress: json['pickupAddress']?.toString() ??
+          json['pickup_address']?.toString(),
+      dropoffLat: _asNullableDouble(json['dropoffLat'] ?? json['dropoff_lat']),
+      dropoffLng: _asNullableDouble(json['dropoffLng'] ?? json['dropoff_lng']),
+      dropoffAddress: json['dropoffAddress']?.toString() ??
+          json['dropoff_address']?.toString(),
+      vehicleType: json['vehicleType']?.toString() ??
+          json['vehicle_type']?.toString(),
+      paymentMethod: json['paymentMethod']?.toString() ??
+          json['payment_method']?.toString(),
+      fareAmount: _asNullableDouble(json['fareAmount'] ?? json['fare_amount']),
+      distanceKm: _asNullableDouble(json['distanceKm'] ?? json['distance_km']),
+      durationMinutes: _asNullableInt(
+        json['durationMinutes'] ?? json['duration_minutes'],
+      ),
       isPrebooking: JsonParsers.toBool(
         json['is_prebooking'] ?? json['isPrebooking'],
       ),

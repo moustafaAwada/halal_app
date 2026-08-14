@@ -52,7 +52,7 @@ class TripRemoteDataSourceImpl implements TripRemoteDataSource {
       );
       final body = _asMap(response.data);
       final dataMap = _unwrapDataMap(body) ?? body;
-      return TripModel.fromJson(dataMap);
+      return TripModel.fromJson(_extractTripJson(dataMap));
     } on DioException catch (e) {
       throw _errorMapper.mapToException(e);
     }
@@ -189,6 +189,14 @@ class TripRemoteDataSourceImpl implements TripRemoteDataSource {
       return Map<String, dynamic>.from(inner);
     }
     return null;
+  }
+
+  Map<String, dynamic> _extractTripJson(Map<String, dynamic> dataMap) {
+    final trip = dataMap['trip'];
+    if (trip is Map) {
+      return Map<String, dynamic>.from(trip);
+    }
+    return dataMap;
   }
 
   Map<String, dynamic> _asMap(dynamic data) {

@@ -16,6 +16,7 @@ abstract final class ApiConstants {
   static const createOrder = '/create-order';
   static const confirmOrder = '/confirm-order';
   static const orders = '/orders';
+  static const eta = '/eta';
 
   static const menuTopUrl = '$menuBaseUrl$menuTop';
   static const menuSearchUrl = '$menuBaseUrl$menuSearch';
@@ -68,6 +69,13 @@ abstract final class ApiConstants {
   static String cancelTripUrl(int tripId) => '$tripsBaseUrl/$tripId/cancel';
 
   static String rateTripUrl(int tripId) => '$tripsBaseUrl/$tripId/rate';
+
+  static String rebookTripUrl(int tripId) => '$tripsBaseUrl/$tripId/rebook';
+
+  static const nearbyTripsUrl = '$tripsBaseUrl/nearby';
+
+  static String deliveryStatusUrl(int orderId) =>
+      '$menuBaseUrl/delivery/$orderId/status';
 
   static String rateOrderUrl(int orderId) =>
       '$menuBaseUrl/orders/$orderId/rate';

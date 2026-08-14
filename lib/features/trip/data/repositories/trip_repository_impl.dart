@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:dartz/dartz.dart';
 
 import '../../../../core/error/exceptions.dart';
@@ -29,9 +31,19 @@ class TripRepositoryImpl implements TripRepository {
               : 'حدث خطأ أثناء طلب الرحلة',
         ),
       );
-    } catch (_) {
-      return const Left(
-        ServerFailure(message: 'حدث خطأ أثناء طلب الرحلة'),
+    } catch (e, st) {
+      developer.log(
+        'requestTrip failed: $e',
+        name: 'TripRepository',
+        error: e,
+        stackTrace: st,
+      );
+      return Left(
+        ServerFailure(
+          message: e is FormatException
+              ? 'تعذر قراءة استجابة الخادم'
+              : 'حدث خطأ أثناء طلب الرحلة',
+        ),
       );
     }
   }

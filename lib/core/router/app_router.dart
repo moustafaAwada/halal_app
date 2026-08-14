@@ -13,6 +13,8 @@ import '../../features/main/presentation/pages/main_shell_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/service_selection/presentation/pages/service_selection_screen.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
+import '../../features/advanced/presentation/cubit/advanced_cubit.dart';
+import '../../features/advanced/presentation/cubit/eta_cubit.dart';
 import '../../features/trip/presentation/cubit/trip_cubit.dart';
 import '../../features/trip/presentation/pages/trip_screen.dart';
 import 'app_routes.dart';
@@ -68,8 +70,12 @@ class AppRouter {
           settings: settings,
         ),
       AppRoutes.trip => MaterialPageRoute<void>(
-          builder: (_) => BlocProvider(
-            create: (_) => sl<TripCubit>(),
+          builder: (_) => MultiBlocProvider(
+            providers: [
+              BlocProvider(create: (_) => sl<TripCubit>()),
+              BlocProvider(create: (_) => sl<EtaCubit>()..load()),
+              BlocProvider(create: (_) => sl<AdvancedCubit>()),
+            ],
             child: const TripScreen(),
           ),
           settings: settings,

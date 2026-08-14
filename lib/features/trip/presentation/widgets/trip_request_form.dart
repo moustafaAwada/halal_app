@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -9,8 +10,12 @@ import '../../../../core/utils/location_service.dart';
 import '../../../../core/utils/places_search_service.dart';
 import '../../../../core/utils/snackbar_utils.dart';
 import '../../../../core/widgets/primary_button.dart';
+import '../../domain/entities/trip_options.dart';
+import '../../../advanced/presentation/widgets/high_demand_eta_banner.dart';
 import '../../../cart/presentation/pages/location_picker_page.dart';
 import 'trip_route_map.dart';
+
+enum _LocationTarget { pickup, dropoff }
 
 /// Trip request form with Google Maps, GPS pickup, and searchable dropoff.
 class TripRequestForm extends StatefulWidget {
@@ -31,6 +36,7 @@ class _TripRequestFormState extends State<TripRequestForm> {
   final _formKey = GlobalKey<FormState>();
   final _pickupAddressController = TextEditingController();
   final _dropoffSearchController = TextEditingController();
+  final _pickupFocusNode = FocusNode();
   final _dropoffFocusNode = FocusNode();
   final _placesService = PlacesSearchService();
 
@@ -40,31 +46,42 @@ class _TripRequestFormState extends State<TripRequestForm> {
   double? _dropoffLng;
   String? _dropoffAddress;
 
-  String _vehicleType = 'car';
-  String _paymentMethod = 'cash';
+  String _vehicleType = TripVehicleType.car;
+  String _paymentMethod = TripPaymentMethod.cash;
   bool _isPrebooking = false;
   DateTime? _prebookingTime;
   bool _isLocatingPickup = false;
+  bool _isSearchingPickup = false;
+  bool _isResolvingPickup = false;
   bool _isSearchingDropoff = false;
   bool _isResolvingDropoff = false;
+  bool _suppressPickupSearch = false;
   bool _suppressDropoffSearch = false;
+  List<PlaceSuggestion> _pickupSuggestions = const [];
   List<PlaceSuggestion> _dropoffSuggestions = const [];
+  Timer? _pickupDebounce;
   Timer? _dropoffDebounce;
+  _LocationTarget _mapTapTarget = _LocationTarget.pickup;
 
   @override
   void initState() {
     super.initState();
+    _pickupAddressController.addListener(_onPickupSearchChanged);
     _dropoffSearchController.addListener(_onDropoffSearchChanged);
     _bootstrapPickupFromGps();
   }
 
   @override
   void dispose() {
+    _pickupDebounce?.cancel();
     _dropoffDebounce?.cancel();
-    _pickupAddressController.dispose();
+    _pickupAddressController
+      ..removeListener(_onPickupSearchChanged)
+      ..dispose();
     _dropoffSearchController
       ..removeListener(_onDropoffSearchChanged)
       ..dispose();
+    _pickupFocusNode.dispose();
     _dropoffFocusNode.dispose();
     super.dispose();
   }
@@ -92,6 +109,122 @@ class _TripRequestFormState extends State<TripRequestForm> {
   int get _estimatedMinutes {
     final km = _distanceKm ?? 5;
     return (km * 2.2).round().clamp(5, 120);
+  }
+
+  void _onPickupSearchChanged() {
+    if (_suppressPickupSearch) return;
+
+    _pickupDebounce?.cancel();
+    final query = _pickupAddressController.text.trim();
+
+    if (_hasPickup) {
+      setState(() {
+        _pickupLat = null;
+        _pickupLng = null;
+      });
+    }
+
+    if (query.length < 2) {
+      setState(() {
+        _pickupSuggestions = const [];
+        _isSearchingPickup = false;
+      });
+      return;
+    }
+
+    setState(() => _isSearchingPickup = true);
+    _pickupDebounce = Timer(const Duration(milliseconds: 400), () async {
+      final results = await _placesService.autocomplete(
+        query,
+        latitude: _pickupLat ?? _dropoffLat,
+        longitude: _pickupLng ?? _dropoffLng,
+      );
+      if (!mounted) return;
+      setState(() {
+        _pickupSuggestions = results;
+        _isSearchingPickup = false;
+      });
+    });
+  }
+
+  void _setPickupSearchText(String value) {
+    _suppressPickupSearch = true;
+    _pickupAddressController.text = value;
+    _suppressPickupSearch = false;
+  }
+
+  Future<void> _selectPickupSuggestion(PlaceSuggestion suggestion) async {
+    setState(() {
+      _isResolvingPickup = true;
+      _pickupSuggestions = const [];
+    });
+    _pickupFocusNode.unfocus();
+
+    final details = await _placesService.getPlaceDetails(suggestion.placeId);
+    if (!mounted) return;
+    setState(() => _isResolvingPickup = false);
+
+    if (details == null) {
+      SnackbarUtils.showErrorSnackBar(context, 'تعذر تحديد موقع الانطلاق');
+      return;
+    }
+
+    final label = details.name?.isNotEmpty == true
+        ? details.name!
+        : suggestion.mainText ?? suggestion.description;
+
+    _applyPickupLocation(
+      latitude: details.latitude,
+      longitude: details.longitude,
+      address: label,
+    );
+  }
+
+  void _clearPickup() {
+    _pickupDebounce?.cancel();
+    setState(() {
+      _pickupLat = null;
+      _pickupLng = null;
+      _pickupSuggestions = const [];
+      _isSearchingPickup = false;
+      _isResolvingPickup = false;
+    });
+    _setPickupSearchText('');
+  }
+
+  void _applyPickupLocation({
+    required double latitude,
+    required double longitude,
+    String? address,
+  }) {
+    setState(() {
+      _pickupLat = latitude;
+      _pickupLng = longitude;
+      _pickupSuggestions = const [];
+    });
+    if (address != null && address.trim().isNotEmpty) {
+      _setPickupSearchText(address.trim());
+    } else if (_pickupAddressController.text.trim().isEmpty) {
+      _setPickupSearchText(
+        '${latitude.toStringAsFixed(4)}, ${longitude.toStringAsFixed(4)}',
+      );
+    }
+    SnackbarUtils.showSuccessSnackBar(context, 'تم تحديد موقع الانطلاق');
+  }
+
+  void _applyDropoffLocation({
+    required double latitude,
+    required double longitude,
+    required String label,
+  }) {
+    setState(() {
+      _dropoffLat = latitude;
+      _dropoffLng = longitude;
+      _dropoffAddress = label;
+      _dropoffSuggestions = const [];
+    });
+    _setDropoffSearchText(label);
+    SnackbarUtils.showSuccessSnackBar(context, 'تم تحديد موقع الوصول');
   }
 
   void _onDropoffSearchChanged() {
@@ -158,13 +291,11 @@ class _TripRequestFormState extends State<TripRequestForm> {
         ? details.name!
         : suggestion.mainText ?? suggestion.description;
 
-    setState(() {
-      _dropoffLat = details.latitude;
-      _dropoffLng = details.longitude;
-      _dropoffAddress = details.displayAddress;
-    });
-    _setDropoffSearchText(label);
-    SnackbarUtils.showSuccessSnackBar(context, 'تم تحديد موقع الوصول');
+    _applyDropoffLocation(
+      latitude: details.latitude,
+      longitude: details.longitude,
+      label: label,
+    );
   }
 
   void _clearDropoff() {
@@ -196,12 +327,6 @@ class _TripRequestFormState extends State<TripRequestForm> {
             _pickupAddressController.text = 'موقعي الحالي';
           }
         });
-        // Focus destination search after pickup is ready.
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && !_hasDropoff) {
-            _dropoffFocusNode.requestFocus();
-          }
-        });
       },
     );
   }
@@ -228,49 +353,108 @@ class _TripRequestFormState extends State<TripRequestForm> {
     );
   }
 
-  Future<void> _pickOnMap({required bool isPickup}) async {
-    final initialLat = isPickup ? _pickupLat : (_dropoffLat ?? _pickupLat);
-    final initialLng = isPickup ? _pickupLng : (_dropoffLng ?? _pickupLng);
+  Future<void> _pickPickupOnMap() async {
+    _dropoffFocusNode.unfocus();
+    _pickupFocusNode.unfocus();
 
     final selected = await Navigator.of(context).push<SelectedLocation>(
       MaterialPageRoute(
         builder: (_) => LocationPickerPage(
-          initialLatitude: initialLat,
-          initialLongitude: initialLng,
-          title: isPickup ? 'اختيار موقع الانطلاق' : 'اختيار موقع الوصول',
-          hint: isPickup
-              ? 'ابحث أو حرّك الخريطة لنقطة الانطلاق'
-              : 'ابحث عن وجهتك أو حرّك الخريطة',
+          initialLatitude: _pickupLat,
+          initialLongitude: _pickupLng,
+          title: 'اختيار موقع الانطلاق',
+          hint: 'ابحث أو حرّك الخريطة لنقطة الانطلاق',
         ),
       ),
     );
 
     if (selected == null || !mounted) return;
 
-    setState(() {
-      if (isPickup) {
-        _pickupLat = selected.latitude;
-        _pickupLng = selected.longitude;
-        if (selected.address != null && selected.address!.trim().isNotEmpty) {
-          _pickupAddressController.text = selected.address!;
-        } else if (_pickupAddressController.text.trim().isEmpty) {
-          _pickupAddressController.text =
-              '${selected.latitude.toStringAsFixed(4)}, '
-              '${selected.longitude.toStringAsFixed(4)}';
-        }
-      } else {
-        _dropoffLat = selected.latitude;
-        _dropoffLng = selected.longitude;
-        final label = (selected.address != null &&
-                selected.address!.trim().isNotEmpty)
-            ? selected.address!.trim()
-            : 'موقع محدد على الخريطة';
-        _dropoffAddress = label;
-        _dropoffSuggestions = const [];
-      }
-    });
-    if (!isPickup) {
-      _setDropoffSearchText(_dropoffAddress ?? '');
+    _applyPickupLocation(
+      latitude: selected.latitude,
+      longitude: selected.longitude,
+      address: selected.address,
+    );
+  }
+
+  Future<void> _pickDropoffOnMap() async {
+    _dropoffFocusNode.unfocus();
+    _pickupFocusNode.unfocus();
+
+    final selected = await Navigator.of(context).push<SelectedLocation>(
+      MaterialPageRoute(
+        builder: (_) => LocationPickerPage(
+          initialLatitude: _dropoffLat ?? _pickupLat,
+          initialLongitude: _dropoffLng ?? _pickupLng,
+          title: 'اختيار موقع الوصول',
+          hint: 'ابحث عن وجهتك أو حرّك الخريطة',
+        ),
+      ),
+    );
+
+    if (selected == null || !mounted) return;
+
+    final label = (selected.address != null && selected.address!.trim().isNotEmpty)
+        ? selected.address!.trim()
+        : 'موقع محدد على الخريطة';
+
+    _applyDropoffLocation(
+      latitude: selected.latitude,
+      longitude: selected.longitude,
+      label: label,
+    );
+  }
+
+  void _onPreviewMapTap(LatLng point) {
+    if (_mapTapTarget == _LocationTarget.pickup) {
+      _applyPickupLocation(
+        latitude: point.latitude,
+        longitude: point.longitude,
+        address: _pickupAddressController.text.trim().isEmpty ||
+                _pickupAddressController.text == 'موقعي الحالي'
+            ? 'موقع محدد على الخريطة'
+            : _pickupAddressController.text.trim(),
+      );
+    } else {
+      _applyDropoffLocation(
+        latitude: point.latitude,
+        longitude: point.longitude,
+        label: 'موقع محدد على الخريطة',
+      );
+    }
+  }
+
+  Future<void> _confirmSwapLocations() async {
+    if (!_hasPickup && !_hasDropoff) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(
+          'تبديل المواقع',
+          style: AppTextStyles.onboardingTitle().copyWith(fontSize: 18),
+          textAlign: TextAlign.center,
+        ),
+        content: Text(
+          'هل تريد تبديل موقع الانطلاق والوصول؟',
+          style: AppTextStyles.onboardingSubtitle(),
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('تبديل'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      _swapLocations();
     }
   }
 
@@ -290,18 +474,27 @@ class _TripRequestFormState extends State<TripRequestForm> {
     setState(() {
       _pickupLat = dropoffLat;
       _pickupLng = dropoffLng;
-      _pickupAddressController.text = dropoffLabel;
 
       _dropoffLat = pickupLat;
       _dropoffLng = pickupLng;
       _dropoffAddress = pickupAddress.isNotEmpty ? pickupAddress : null;
       _dropoffSuggestions = const [];
+      _pickupSuggestions = const [];
     });
+    _setPickupSearchText(dropoffLabel);
     _setDropoffSearchText(pickupAddress);
   }
 
   void _submit() {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      SnackbarUtils.showErrorSnackBar(
+        context,
+        _hasPickup && !_hasDropoff
+            ? 'اختر موقع الوصول من البحث أو الخريطة'
+            : 'يرجى إكمال جميع الحقول المطلوبة',
+      );
+      return;
+    }
 
     if (!_hasPickup) {
       SnackbarUtils.showErrorSnackBar(
@@ -433,34 +626,65 @@ class _TripRequestFormState extends State<TripRequestForm> {
           ),
           const SizedBox(height: 8),
           Text(
-            'حدد وجهتك — الانطلاق يُضبط تلقائياً من موقعك',
+            'حدد موقع الانطلاق والوصول',
             style: AppTextStyles.onboardingSubtitle(),
             textAlign: TextAlign.right,
           ),
           const SizedBox(height: 16),
+          const HighDemandEtaBanner(),
+          SegmentedButton<_LocationTarget>(
+            segments: const [
+              ButtonSegment(
+                value: _LocationTarget.pickup,
+                label: Text('انطلاق'),
+                icon: Icon(Icons.trip_origin, size: 16),
+              ),
+              ButtonSegment(
+                value: _LocationTarget.dropoff,
+                label: Text('وصول'),
+                icon: Icon(Icons.flag_rounded, size: 16),
+              ),
+            ],
+            selected: {_mapTapTarget},
+            onSelectionChanged: (selection) {
+              setState(() => _mapTapTarget = selection.first);
+            },
+            style: ButtonStyle(
+              visualDensity: VisualDensity.compact,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ),
+          const SizedBox(height: 8),
           TripRouteMap(
             height: 220,
             pickupLat: _pickupLat,
             pickupLng: _pickupLng,
             dropoffLat: _dropoffLat,
             dropoffLng: _dropoffLng,
+            onMapTap: _onPreviewMapTap,
           ),
           const SizedBox(height: 16),
           _PickupCard(
-            addressController: _pickupAddressController,
+            searchController: _pickupAddressController,
+            focusNode: _pickupFocusNode,
             hasCoordinates: _hasPickup,
-            latitude: _pickupLat,
-            longitude: _pickupLng,
+            isSearching: _isSearchingPickup,
+            isResolving: _isResolvingPickup,
+            suggestions: _pickupSuggestions,
             isLocating: _isLocatingPickup,
-            onPickMap: () => _pickOnMap(isPickup: true),
+            onSuggestionTap: _selectPickupSuggestion,
+            onPickMap: _pickPickupOnMap,
             onUseGps: _useCurrentLocationAsPickup,
+            onClear: _hasPickup || _pickupAddressController.text.isNotEmpty
+                ? _clearPickup
+                : null,
           ),
           if (_hasPickup && _hasDropoff) ...[
             const SizedBox(height: 8),
             Center(
               child: IconButton.filledTonal(
                 tooltip: 'تبديل الانطلاق والوصول',
-                onPressed: _swapLocations,
+                onPressed: _confirmSwapLocations,
                 style: IconButton.styleFrom(
                   backgroundColor: AppColors.reviewsBackground,
                   foregroundColor: AppColors.primaryBlue,
@@ -478,7 +702,7 @@ class _TripRequestFormState extends State<TripRequestForm> {
             isResolving: _isResolvingDropoff,
             suggestions: _dropoffSuggestions,
             onSuggestionTap: _selectDropoffSuggestion,
-            onPickMap: () => _pickOnMap(isPickup: false),
+            onPickMap: _pickDropoffOnMap,
             onClear: _hasDropoff || _dropoffSearchController.text.isNotEmpty
                 ? _clearDropoff
                 : null,
@@ -492,32 +716,18 @@ class _TripRequestFormState extends State<TripRequestForm> {
             ),
           ],
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _DropdownField(
-                  label: 'نوع المركبة',
-                  value: _vehicleType,
-                  items: const {
-                    'car': 'سيارة',
-                    'motorcycle': 'دراجة',
-                  },
-                  onChanged: (v) => setState(() => _vehicleType = v),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _DropdownField(
-                  label: 'طريقة الدفع',
-                  value: _paymentMethod,
-                  items: const {
-                    'cash': 'نقداً',
-                    'online': 'إلكتروني',
-                  },
-                  onChanged: (v) => setState(() => _paymentMethod = v),
-                ),
-              ),
-            ],
+          _DropdownField(
+            label: 'نوع المركبة',
+            value: _vehicleType,
+            items: TripVehicleType.labels,
+            onChanged: (v) => setState(() => _vehicleType = v),
+          ),
+          const SizedBox(height: 12),
+          _DropdownField(
+            label: 'طريقة الدفع',
+            value: _paymentMethod,
+            items: TripPaymentMethod.labels,
+            onChanged: (v) => setState(() => _paymentMethod = v),
           ),
           const SizedBox(height: 16),
           _PrebookingSection(
@@ -635,31 +845,46 @@ class _PrebookingSection extends StatelessWidget {
 
 class _PickupCard extends StatelessWidget {
   const _PickupCard({
-    required this.addressController,
+    required this.searchController,
+    required this.focusNode,
     required this.hasCoordinates,
+    required this.isSearching,
+    required this.isResolving,
+    required this.suggestions,
+    required this.onSuggestionTap,
     required this.onPickMap,
     required this.onUseGps,
     required this.isLocating,
-    this.latitude,
-    this.longitude,
+    this.onClear,
   });
 
-  final TextEditingController addressController;
+  final TextEditingController searchController;
+  final FocusNode focusNode;
   final bool hasCoordinates;
-  final double? latitude;
-  final double? longitude;
-  final bool isLocating;
+  final bool isSearching;
+  final bool isResolving;
+  final List<PlaceSuggestion> suggestions;
+  final ValueChanged<PlaceSuggestion> onSuggestionTap;
   final VoidCallback onPickMap;
   final VoidCallback onUseGps;
+  final bool isLocating;
+  final VoidCallback? onClear;
 
   @override
   Widget build(BuildContext context) {
+    const accent = AppColors.primaryBlue;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.navBarBorder),
+        border: Border.all(
+          color: hasCoordinates
+              ? const Color(0xFFB7E4C7)
+              : accent.withValues(alpha: 0.35),
+          width: hasCoordinates ? 1.2 : 1.5,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -669,50 +894,133 @@ class _PickupCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryBlue.withValues(alpha: 0.12),
+                  color: accent.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.my_location_rounded,
-                  color: AppColors.primaryBlue,
+                  color: accent,
                   size: 20,
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  'موقع الانطلاق',
-                  style: AppTextStyles.skipButton(color: Colors.black87),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'من أين؟',
+                      style: AppTextStyles.skipButton(color: Colors.black87)
+                          .copyWith(fontSize: 16),
+                    ),
+                    Text(
+                      'موقع الانطلاق',
+                      style: AppTextStyles.onboardingSubtitle(
+                        color: Colors.black45,
+                      ).copyWith(fontSize: 12),
+                    ),
+                  ],
                 ),
               ),
               if (hasCoordinates)
                 const Icon(
                   Icons.check_circle_rounded,
                   color: Color(0xFF2E9B5E),
-                  size: 20,
+                  size: 22,
                 ),
             ],
           ),
           const SizedBox(height: 12),
           TextFormField(
-            controller: addressController,
+            controller: searchController,
+            focusNode: focusNode,
             textAlign: TextAlign.right,
+            textInputAction: TextInputAction.search,
             decoration: InputDecoration(
-              hintText: 'وصف موقع الانطلاق',
+              hintText: 'ابحث عن موقع الانطلاق (مول، منطقة، عنوان...)',
+              hintStyle: AppTextStyles.onboardingSubtitle(
+                color: Colors.black38,
+              ).copyWith(fontSize: 13),
               filled: true,
               fillColor: AppColors.searchBackground,
+              prefixIcon: const Icon(Icons.search_rounded, color: accent),
+              suffixIcon: isSearching || isResolving
+                  ? const Padding(
+                      padding: EdgeInsets.all(14),
+                      child: SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : onClear != null
+                      ? IconButton(
+                          icon: const Icon(Icons.close_rounded),
+                          onPressed: onClear,
+                        )
+                      : null,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
               ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 14,
-                vertical: 12,
+                vertical: 14,
               ),
             ),
-            validator: (v) =>
-                (v == null || v.trim().isEmpty) ? 'أدخل وصف الموقع' : null,
+            validator: (_) {
+              if (!hasCoordinates) {
+                return 'اختر موقع انطلاق من البحث أو الخريطة';
+              }
+              return null;
+            },
           ),
+          if (suggestions.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.searchBackground,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.navBarBorder),
+              ),
+              constraints: const BoxConstraints(maxHeight: 220),
+              child: ListView.separated(
+                shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                itemCount: suggestions.length,
+                separatorBuilder: (_, _) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final suggestion = suggestions[index];
+                  return ListTile(
+                    dense: true,
+                    leading: const Icon(
+                      Icons.place_outlined,
+                      color: accent,
+                      size: 20,
+                    ),
+                    title: Text(
+                      suggestion.mainText ?? suggestion.description,
+                      style: AppTextStyles.skipButton(color: Colors.black87)
+                          .copyWith(fontSize: 13),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: suggestion.secondaryText == null
+                        ? null
+                        : Text(
+                            suggestion.secondaryText!,
+                            style: AppTextStyles.onboardingSubtitle(
+                              color: Colors.black54,
+                            ).copyWith(fontSize: 11),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                    onTap: () => onSuggestionTap(suggestion),
+                  );
+                },
+              ),
+            ),
+          ],
           const SizedBox(height: 10),
           Row(
             children: [
@@ -722,8 +1030,8 @@ class _PickupCard extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: isLocating ? null : onUseGps,
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primaryBlue,
-                      side: const BorderSide(color: AppColors.primaryBlue),
+                      foregroundColor: accent,
+                      side: const BorderSide(color: accent),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -737,9 +1045,8 @@ class _PickupCard extends StatelessWidget {
                         : const Icon(Icons.gps_fixed_rounded, size: 16),
                     label: Text(
                       'موقعي',
-                      style: AppTextStyles.skipButton(
-                        color: AppColors.primaryBlue,
-                      ).copyWith(fontSize: 13),
+                      style: AppTextStyles.skipButton(color: accent)
+                          .copyWith(fontSize: 13),
                     ),
                   ),
                 ),
@@ -751,7 +1058,7 @@ class _PickupCard extends StatelessWidget {
                   child: FilledButton.icon(
                     onPressed: onPickMap,
                     style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.primaryBlue,
+                      backgroundColor: accent,
                       foregroundColor: AppColors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),

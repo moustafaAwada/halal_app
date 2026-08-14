@@ -5,7 +5,8 @@ enum TripStatus {
   inProgress,
   completed,
   cancelledByCustomer,
-  cancelledByDriver;
+  cancelledByDriver,
+  noDriverFound;
 
   String get apiValue => switch (this) {
         TripStatus.requested => 'requested',
@@ -15,6 +16,18 @@ enum TripStatus {
         TripStatus.completed => 'completed',
         TripStatus.cancelledByCustomer => 'cancelled_by_customer',
         TripStatus.cancelledByDriver => 'cancelled_by_driver',
+        TripStatus.noDriverFound => 'no_driver_found',
+      };
+
+  String get labelAr => switch (this) {
+        TripStatus.requested => 'بانتظار السائق',
+        TripStatus.accepted => 'تم قبول الرحلة',
+        TripStatus.driverArrived => 'وصل السائق',
+        TripStatus.inProgress => 'الرحلة جارية',
+        TripStatus.completed => 'مكتملة',
+        TripStatus.cancelledByCustomer => 'ملغاة من العميل',
+        TripStatus.cancelledByDriver => 'ملغاة من السائق',
+        TripStatus.noDriverFound => 'لم يُعثر على سائق',
       };
 
   static TripStatus fromApi(String? value) {
@@ -26,6 +39,7 @@ enum TripStatus {
       'completed' => TripStatus.completed,
       'cancelled_by_customer' => TripStatus.cancelledByCustomer,
       'cancelled_by_driver' => TripStatus.cancelledByDriver,
+      'no_driver_found' => TripStatus.noDriverFound,
       _ => TripStatus.requested,
     };
   }

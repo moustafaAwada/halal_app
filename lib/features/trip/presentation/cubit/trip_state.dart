@@ -155,6 +155,15 @@ final class TripCancelled extends TripState {
   List<Object?> get props => [trip, successMessage];
 }
 
+final class NoDriverFound extends TripState {
+  const NoDriverFound({required this.trip});
+
+  final Trip trip;
+
+  @override
+  List<Object?> get props => [trip];
+}
+
 final class TripError extends TripState {
   const TripError({required this.message});
 

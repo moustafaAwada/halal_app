@@ -204,6 +204,8 @@ class TripCompletedPanel extends StatelessWidget {
     required this.paymentStatus,
     required this.onRate,
     required this.onNewTrip,
+    this.onRebook,
+    this.isRebooking = false,
   });
 
   final Trip trip;
@@ -212,6 +214,8 @@ class TripCompletedPanel extends StatelessWidget {
   final String paymentStatus;
   final VoidCallback onRate;
   final VoidCallback onNewTrip;
+  final VoidCallback? onRebook;
+  final bool isRebooking;
 
   bool get _hasMapCoords =>
       trip.pickupLat != null &&
@@ -272,6 +276,14 @@ class TripCompletedPanel extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         PrimaryButton(label: 'تقييم السائق', onPressed: onRate),
+        if (onRebook != null) ...[
+          const SizedBox(height: 12),
+          PrimaryButton(
+            label: isRebooking ? 'جاري إعادة الحجز...' : 'إعادة الحجز',
+            isLoading: isRebooking,
+            onPressed: isRebooking ? null : onRebook,
+          ),
+        ],
         const SizedBox(height: 12),
         TextButton(
           onPressed: onNewTrip,

@@ -53,6 +53,7 @@ class TripCubit extends Cubit<TripState> {
         TripInProgress(:final trip) => trip,
         TripCompleted(:final trip) => trip,
         TripCancelled(:final trip) => trip,
+        NoDriverFound(:final trip) => trip,
         _ => null,
       };
 
@@ -93,12 +94,14 @@ class TripCubit extends Cubit<TripState> {
           prebookingTime: prebookingTime,
         );
         emit(
-          TripRequested(
-            trip: enriched,
-            successMessage: isPrebooking
-                ? 'تم حجز الرحلة بنجاح'
-                : 'تم طلب الرحلة بنجاح',
-          ),
+          enriched.status == TripStatus.noDriverFound
+              ? NoDriverFound(trip: enriched)
+              : TripRequested(
+                  trip: enriched,
+                  successMessage: isPrebooking
+                      ? 'تم حجز الرحلة بنجاح'
+                      : 'تم طلب الرحلة بنجاح',
+                ),
         );
       },
     );
@@ -277,6 +280,16 @@ class TripCubit extends Cubit<TripState> {
   }
 
   void reset() => emit(const TripInitial());
+
+  /// Applies a trip returned from rebook API into the active lifecycle.
+  void applyRebookedTrip(Trip trip) {
+    emit(
+      TripRequested(
+        trip: trip,
+        successMessage: 'تم إعادة الحجز بنجاح',
+      ),
+    );
+  }
 
   static double? _asDouble(dynamic value) {
     if (value is double) return value;
