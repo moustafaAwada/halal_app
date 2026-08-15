@@ -102,6 +102,13 @@ import '../../features/trip/domain/usecases/request_trip.dart';
 import '../../features/trip/domain/usecases/start_trip.dart';
 import '../../features/trip/domain/usecases/update_tracking.dart';
 import '../../features/trip/presentation/cubit/trip_cubit.dart';
+import '../../features/wallet/data/datasources/wallet_remote_data_source.dart';
+import '../../features/wallet/data/repositories/wallet_repository_impl.dart';
+import '../../features/wallet/domain/repositories/wallet_repository.dart';
+import '../../features/wallet/domain/usecases/get_wallet_balance.dart';
+import '../../features/wallet/domain/usecases/get_wallet_requests.dart';
+import '../../features/wallet/domain/usecases/submit_recharge.dart';
+import '../../features/wallet/presentation/cubit/wallet_cubit.dart';
 import '../network/dio_client.dart';
 import '../network/dio_error_mapper.dart';
 import '../router/app_router.dart';
@@ -131,6 +138,7 @@ Future<void> initDependencies() async {
   _initTrip();
   _initAdvanced();
   _initOnboarding();
+  _initWallet();
 }
 
 void _initAuth() {
@@ -428,6 +436,30 @@ void _initAdvanced() {
   );
   sl.registerLazySingleton<AdvancedRemoteDataSource>(
     () => AdvancedRemoteDataSourceImpl(
+      dio: sl<DioClient>().dio,
+      errorMapper: sl(),
+    ),
+  );
+}
+
+void _initWallet() {
+  sl.registerFactory(
+    () => WalletCubit(
+      getWalletBalanceUseCase: sl(),
+      getWalletRequestsUseCase: sl(),
+      submitRechargeUseCase: sl(),
+    ),
+  );
+
+  sl.registerLazySingleton(() => GetWalletBalanceUseCase(sl()));
+  sl.registerLazySingleton(() => GetWalletRequestsUseCase(sl()));
+  sl.registerLazySingleton(() => SubmitRechargeUseCase(sl()));
+
+  sl.registerLazySingleton<WalletRepository>(
+    () => WalletRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton<WalletRemoteDataSource>(
+    () => WalletRemoteDataSourceImpl(
       dio: sl<DioClient>().dio,
       errorMapper: sl(),
     ),

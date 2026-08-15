@@ -17,7 +17,8 @@ import '../../features/advanced/presentation/cubit/advanced_cubit.dart';
 import '../../features/advanced/presentation/cubit/eta_cubit.dart';
 import '../../features/trip/presentation/cubit/trip_cubit.dart';
 import '../../features/trip/presentation/pages/trip_screen.dart';
-import '../../features/wallet/presentation/pages/wallet_top_up_page.dart';
+import '../../features/wallet/presentation/cubit/wallet_cubit.dart';
+import '../../features/wallet/presentation/pages/wallet_dashboard_page.dart';
 import '../../features/checkout/presentation/pages/checkout_page.dart';
 import 'app_routes.dart';
 
@@ -100,7 +101,10 @@ class AppRouter {
           settings: settings,
         ),
       AppRoutes.walletTopUp => MaterialPageRoute<void>(
-          builder: (_) => const WalletTopUpPage(),
+          builder: (_) => BlocProvider(
+            create: (_) => sl<WalletCubit>(),
+            child: const WalletDashboardPage(),
+          ),
           settings: settings,
         ),
       AppRoutes.checkout => MaterialPageRoute<void>(

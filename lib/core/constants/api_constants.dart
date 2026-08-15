@@ -19,6 +19,11 @@ abstract final class ApiConstants {
   static const orders = '/orders';
   static const eta = '/eta';
 
+  static const walletBaseUrl = '/wallet';
+  static const walletBalanceUrl = '$walletBaseUrl/balance';
+  static const walletMyRequestsUrl = '$walletBaseUrl/my-requests';
+  static const walletRechargeUrl = '$walletBaseUrl/recharge';
+
   static const menuTopUrl = '$menuBaseUrl$menuTop';
   static const menuSearchUrl = '$menuBaseUrl$menuSearch';
 
