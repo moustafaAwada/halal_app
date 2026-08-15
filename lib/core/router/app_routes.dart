@@ -9,4 +9,6 @@ abstract final class AppRoutes {
   static const String home = '/home';
   static const String serviceSelection = '/service-selection';
   static const String trip = '/trip';
+  static const String walletTopUp = '/wallet-top-up';
+  static const String checkout = '/checkout';
 }

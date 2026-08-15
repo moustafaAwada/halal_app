@@ -434,6 +434,8 @@ class _ProfileContent extends StatelessWidget {
                         sizeCurve: Curves.easeOutCubic,
                       ),
                       const SizedBox(height: 12),
+                      _buildWalletButton(context),
+                      const SizedBox(height: 12),
                       _buildSupportChatButton(),
                       const SizedBox(height: 12),
                       _buildLogoutButton(),
@@ -513,6 +515,49 @@ class _ProfileContent extends StatelessWidget {
         ),
         title: Text(
           'الدعم الفني',
+          style: AppTextStyles.skipButton(color: Colors.black87).copyWith(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        trailing: const Icon(
+          Icons.arrow_back_ios,
+          size: 16,
+          color: AppColors.subtitleGrey,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWalletButton(BuildContext context) {
+    return Material(
+      color: AppColors.reviewsBackground,
+      borderRadius: BorderRadius.circular(18),
+      clipBehavior: Clip.antiAlias,
+      child: ListTile(
+        onTap: () => Navigator.pushNamed(context, '/wallet-top-up'),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(
+            color: AppColors.primaryBlue.withValues(alpha: 0.15),
+          ),
+        ),
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.account_balance_wallet_outlined,
+            color: AppColors.primaryBlue,
+            size: 22,
+          ),
+        ),
+        title: Text(
+          'محفظتي',
           style: AppTextStyles.skipButton(color: Colors.black87).copyWith(
             fontSize: 15,
             fontWeight: FontWeight.w700,

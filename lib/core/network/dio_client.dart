@@ -8,8 +8,10 @@ import 'logging_interceptor.dart';
 
 /// Configured Dio HTTP client for the application API.
 class DioClient {
-  DioClient({SecureStorageService? secureStorage})
-      : _dio = Dio(
+  DioClient({
+    SecureStorageService? secureStorage,
+    void Function()? onSessionExpired,
+  }) : _dio = Dio(
           BaseOptions(
             baseUrl: ApiConstants.baseUrl,
             connectTimeout: const Duration(seconds: 30),
@@ -21,7 +23,13 @@ class DioClient {
           ),
         ) {
     if (secureStorage != null) {
-      _dio.interceptors.add(AuthInterceptor(secureStorage: secureStorage));
+      _dio.interceptors.add(
+        AuthInterceptor(
+          dio: _dio,
+          secureStorage: secureStorage,
+          onSessionExpired: onSessionExpired,
+        ),
+      );
     }
 
     // Log all requests/responses in debug builds only.

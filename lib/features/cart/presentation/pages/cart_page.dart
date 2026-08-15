@@ -53,13 +53,12 @@ class _CartView extends StatelessWidget {
   void _openCheckout(BuildContext context, List<Order> orders) {
     if (orders.isEmpty) return;
 
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => BlocProvider.value(
-          value: context.read<CartCubit>(),
-          child: CheckoutPage(order: orders.first),
-        ),
-      ),
+    Navigator.of(context).pushNamed(
+      '/checkout',
+      arguments: {
+        'currentBalance': 1500.0, // Mocked balance for now
+        'totalAmount': orders.first.totalPrice,
+      },
     );
   }
 

@@ -104,6 +104,7 @@ import '../../features/trip/domain/usecases/update_tracking.dart';
 import '../../features/trip/presentation/cubit/trip_cubit.dart';
 import '../network/dio_client.dart';
 import '../network/dio_error_mapper.dart';
+import '../router/app_router.dart';
 import '../storage/secure_storage_service.dart';
 
 final sl = GetIt.instance;
@@ -112,7 +113,10 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(SecureStorageService.new);
   sl.registerLazySingleton(DioErrorMapper.new);
   sl.registerLazySingleton(
-    () => DioClient(secureStorage: sl<SecureStorageService>()),
+    () => DioClient(
+      secureStorage: sl<SecureStorageService>(),
+      onSessionExpired: AppRouter.goToLoginOnSessionExpired,
+    ),
   );
 
   _initAuth();

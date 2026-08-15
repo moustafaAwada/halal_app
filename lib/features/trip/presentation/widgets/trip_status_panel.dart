@@ -275,6 +275,20 @@ class TripCompletedPanel extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
+        PrimaryButton(
+          label: 'دفع ${paymentAmount.toStringAsFixed(0)} ج.م',
+          onPressed: () {
+            Navigator.pushNamed(
+              context,
+              '/checkout',
+              arguments: {
+                'currentBalance': 1500.0,
+                'totalAmount': paymentAmount,
+              },
+            );
+          },
+        ),
+        const SizedBox(height: 12),
         PrimaryButton(label: 'تقييم السائق', onPressed: onRate),
         if (onRebook != null) ...[
           const SizedBox(height: 12),

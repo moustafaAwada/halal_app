@@ -17,10 +17,29 @@ import '../../features/advanced/presentation/cubit/advanced_cubit.dart';
 import '../../features/advanced/presentation/cubit/eta_cubit.dart';
 import '../../features/trip/presentation/cubit/trip_cubit.dart';
 import '../../features/trip/presentation/pages/trip_screen.dart';
+import '../../features/wallet/presentation/pages/wallet_top_up_page.dart';
+import '../../features/checkout/presentation/pages/checkout_page.dart';
 import 'app_routes.dart';
 
 /// Central route table for the application.
 class AppRouter {
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
+
+  static const sessionExpiredMessage =
+      'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى';
+
+  /// Clears the nav stack and opens login after an expired/revoked session.
+  static void goToLoginOnSessionExpired() {
+    final navigator = navigatorKey.currentState;
+    if (navigator == null) return;
+    navigator.pushNamedAndRemoveUntil(
+      AppRoutes.login,
+      (_) => false,
+      arguments: sessionExpiredMessage,
+    );
+  }
+
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     return switch (settings.name) {
       AppRoutes.splash => MaterialPageRoute<void>(
@@ -78,6 +97,20 @@ class AppRouter {
             ],
             child: const TripScreen(),
           ),
+          settings: settings,
+        ),
+      AppRoutes.walletTopUp => MaterialPageRoute<void>(
+          builder: (_) => const WalletTopUpPage(),
+          settings: settings,
+        ),
+      AppRoutes.checkout => MaterialPageRoute<void>(
+          builder: (_) {
+            final args = settings.arguments as Map<String, dynamic>?;
+            return CheckoutPage(
+              currentBalance: args?['currentBalance'] ?? 1500.0,
+              totalAmount: args?['totalAmount'] ?? 450.0,
+            );
+          },
           settings: settings,
         ),
       _ => MaterialPageRoute<void>(

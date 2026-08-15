@@ -15,6 +15,7 @@ class HalalApp extends StatelessWidget {
     return MaterialApp(
       title: 'Halal App',
       debugShowCheckedModeBanner: false,
+      navigatorKey: AppRouter.navigatorKey,
       theme: AppTheme.light,
       locale: const Locale('ar'),
       supportedLocales: const [Locale('ar')],

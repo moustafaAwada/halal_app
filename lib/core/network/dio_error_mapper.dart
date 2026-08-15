@@ -45,7 +45,10 @@ class DioErrorMapper {
 
     return switch (statusCode) {
       400 => ServerFailure(message: message ?? 'البيانات المدخلة غير صحيحة'),
-      401 => ServerFailure(message: message ?? 'بيانات الدخول غير صحيحة'),
+      401 => ServerFailure(
+          message: _sessionAwareMessage(message) ??
+              'بيانات الدخول غير صحيحة',
+        ),
       403 => ServerFailure(message: message ?? 'غير مصرح لك بتنفيذ هذا الإجراء'),
       404 => ServerFailure(message: message ?? 'المستخدم غير موجود'),
       409 => ServerFailure(message: message ?? 'البريد الإلكتروني مستخدم بالفعل'),
@@ -72,5 +75,14 @@ class DioErrorMapper {
       }
     }
     return null;
+  }
+
+  String? _sessionAwareMessage(String? message) {
+    if (message == null || message.isEmpty) return null;
+    final lower = message.toLowerCase();
+    if (lower.contains('session expired') || lower.contains('revoked')) {
+      return 'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى';
+    }
+    return message;
   }
 }

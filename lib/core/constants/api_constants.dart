@@ -6,6 +6,7 @@ abstract final class ApiConstants {
   static const register = '/register';
   static const sendCode = '/send-code';
   static const forgetPassword = '/forget-password';
+  static const refreshToken = '/refresh-token';
   static const menuTop = '/menu/top';
   static const menuSearch = '/menu/search';
   static const favorites = '/favorites';
