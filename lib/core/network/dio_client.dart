@@ -13,7 +13,7 @@ class DioClient {
     void Function()? onSessionExpired,
   }) : _dio = Dio(
           BaseOptions(
-            baseUrl: ApiConstants.baseUrl,
+            baseUrl: ApiConstants.clientBaseUrl,
             connectTimeout: const Duration(seconds: 30),
             receiveTimeout: const Duration(seconds: 30),
             headers: const {

@@ -23,6 +23,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
   double get _remainingBalance => widget.currentBalance - widget.totalAmount;
 
   void _confirmPayment() {
+    if (_selectedPaymentMethod == 1 && !_hasSufficientBalance) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Insufficient balance. Please top up your wallet.'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
     // Simulate payment processing
     Future.delayed(const Duration(seconds: 2), () {
@@ -484,7 +495,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Widget _buildBottomBar() {
     final bool isWalletSelectedAndInsufficient =
         _selectedPaymentMethod == 1 && !_hasSufficientBalance;
-    final bool isButtonDisabled = isWalletSelectedAndInsufficient || _isLoading;
+    final bool isButtonDisabled = _isLoading;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
