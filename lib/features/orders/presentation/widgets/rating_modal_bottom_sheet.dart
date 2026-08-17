@@ -56,6 +56,8 @@ class _RatingModalBottomSheetState extends State<RatingModalBottomSheet> {
           deliveryRating: _deliveryRating,
           deliveryComment: _deliveryCommentController.text,
         );
+    SnackbarUtils.showSuccessSnackBar(context, 'تم إرسال التقييم بنجاح، شكراً لك!');
+    Navigator.of(context).pop();
   }
 
   @override

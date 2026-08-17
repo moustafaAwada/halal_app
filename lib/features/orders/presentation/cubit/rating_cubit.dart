@@ -52,12 +52,12 @@ class RatingCubit extends Cubit<RatingState> {
     for (final result in results) {
       final failure = result.fold((f) => f, (_) => null);
       if (failure != null) {
-        emit(RatingError(message: failure.message));
+        if (!isClosed) emit(RatingError(message: failure.message));
         return;
       }
     }
 
-    emit(const RatingSuccess(message: 'تم تسجيل التقييم بنجاح'));
+    if (!isClosed) emit(const RatingSuccess(message: 'تم تسجيل التقييم بنجاح'));
   }
 
   bool _isValidRating(int value) => value >= 1 && value <= 5;
