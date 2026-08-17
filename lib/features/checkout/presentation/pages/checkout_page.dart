@@ -151,6 +151,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     _buildCardOption(),
                     const SizedBox(height: 16),
                     _buildCashOnDeliveryOption(),
+                    const SizedBox(height: 16),
+                    _buildPointsOption(),
                   ],
                 ),
               ),
@@ -401,29 +403,27 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   Widget _buildCardOption() {
-    final bool isSelected = _selectedPaymentMethod == 2;
-
-    return GestureDetector(
-      onTap: () => setState(() => _selectedPaymentMethod = 2),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? const Color(0xFF818CF8) : const Color(0xFFE5E7EB),
-            width: isSelected ? 2 : 1,
-          ),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFFE5E7EB),
+          width: 1,
         ),
+      ),
+      child: Opacity(
+        opacity: 0.6,
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: const BoxDecoration(
-                color: Color(0xFFE0E7FF),
+                color: Color(0xFFE5E7EB),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.credit_card_outlined, color: Color(0xFF4338CA)),
+              child: const Icon(Icons.credit_card_outlined, color: Color(0xFF6B7280)),
             ),
             const SizedBox(width: 16),
             const Expanded(
@@ -432,13 +432,24 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFF111827),
+                  color: Color(0xFF6B7280),
                 ),
               ),
             ),
-            Icon(
-              isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-              color: isSelected ? const Color(0xFF4338CA) : const Color(0xFFD1D5DB),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEE2E2),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Text(
+                'Soon',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFFDC2626),
+                ),
+              ),
             ),
           ],
         ),
@@ -480,6 +491,65 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   fontWeight: FontWeight.w500,
                   color: Color(0xFF111827),
                 ),
+              ),
+            ),
+            Icon(
+              isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+              color: isSelected ? const Color(0xFF4338CA) : const Color(0xFFD1D5DB),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPointsOption() {
+    final bool isSelected = _selectedPaymentMethod == 4;
+
+    return GestureDetector(
+      onTap: () => setState(() => _selectedPaymentMethod = 4),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF818CF8) : const Color(0xFFE5E7EB),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: const BoxDecoration(
+                color: Color(0xFFE0E7FF),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.stars_rounded, color: Color(0xFF4338CA)),
+            ),
+            const SizedBox(width: 16),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'My Points',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Pay using your earned points',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
+                ],
               ),
             ),
             Icon(
