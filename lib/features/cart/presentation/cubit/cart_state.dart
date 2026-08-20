@@ -19,10 +19,14 @@ final class CartLoaded extends CartState {
   const CartLoaded({
     required this.items,
     this.isBusy = false,
+    this.hasNewItems = false,
   });
 
   final List<CartItem> items;
   final bool isBusy;
+
+  /// `true` after a successful `addToCart` call, until the user opens the cart.
+  final bool hasNewItems;
 
   double get total =>
       items.fold<double>(0, (sum, item) => sum + item.lineTotal);
@@ -32,15 +36,17 @@ final class CartLoaded extends CartState {
   CartLoaded copyWith({
     List<CartItem>? items,
     bool? isBusy,
+    bool? hasNewItems,
   }) {
     return CartLoaded(
       items: items ?? this.items,
       isBusy: isBusy ?? this.isBusy,
+      hasNewItems: hasNewItems ?? this.hasNewItems,
     );
   }
 
   @override
-  List<Object?> get props => [items, isBusy];
+  List<Object?> get props => [items, isBusy, hasNewItems];
 }
 
 final class CartError extends CartState {

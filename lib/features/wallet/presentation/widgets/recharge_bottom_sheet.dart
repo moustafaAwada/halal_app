@@ -34,8 +34,8 @@ class _RechargeBottomSheetState extends State<RechargeBottomSheet> {
   bool _showImageError = false;
 
   final List<Map<String, String>> _paymentMethods = [
-    {'value': 'vodafone_cash', 'label': 'Vodafone Cash'},
-    {'value': 'instapay', 'label': 'InstaPay'},
+    {'value': 'vodafone_cash', 'label': 'فودافون كاش'},
+    {'value': 'instapay', 'label': 'انستاباي'},
   ];
 
   Future<void> _pickImage() async {
@@ -82,7 +82,7 @@ class _RechargeBottomSheetState extends State<RechargeBottomSheet> {
           Navigator.pop(context); // Close bottom sheet
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.rechargeMessage ?? 'Success'),
+              content: Text(state.rechargeMessage ?? 'تم بنجاح'),
               backgroundColor: Colors.green,
               behavior: SnackBarBehavior.floating,
               margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.5, left: 20, right: 20),
@@ -92,7 +92,7 @@ class _RechargeBottomSheetState extends State<RechargeBottomSheet> {
         } else if (state.rechargeStatus == WalletRechargeStatus.error) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.rechargeMessage ?? 'An error occurred'),
+              content: Text(state.rechargeMessage ?? 'حدث خطأ'),
               backgroundColor: Colors.red,
               behavior: SnackBarBehavior.floating,
               margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.5, left: 20, right: 20),
@@ -130,7 +130,7 @@ class _RechargeBottomSheetState extends State<RechargeBottomSheet> {
               ),
               const SizedBox(height: 24),
               const Text(
-                'Top Up Wallet',
+                'شحن المحفظة',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -143,16 +143,16 @@ class _RechargeBottomSheetState extends State<RechargeBottomSheet> {
                 controller: _amountController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
-                  labelText: 'Amount (EGP)',
+                  labelText: 'المبلغ (ج.م)',
                   prefixIcon: const Icon(Icons.attach_money),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'Enter amount';
+                  if (value == null || value.isEmpty) return 'أدخل المبلغ';
                   final numValue = double.tryParse(value);
-                  if (numValue == null || numValue <= 0) return 'Enter valid amount > 0';
+                  if (numValue == null || numValue <= 0) return 'أدخل مبلغ صحيح > 0';
                   return null;
                 },
               ),
@@ -160,7 +160,7 @@ class _RechargeBottomSheetState extends State<RechargeBottomSheet> {
               DropdownButtonFormField<String>(
                 value: _selectedMethod,
                 decoration: InputDecoration(
-                  labelText: 'Payment Method',
+                  labelText: 'طريقة الدفع',
                   prefixIcon: const Icon(Icons.account_balance),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -196,7 +196,7 @@ class _RechargeBottomSheetState extends State<RechargeBottomSheet> {
                           children: [
                             Icon(Icons.cloud_upload_outlined, size: 40, color: AppColors.primaryBlue),
                             SizedBox(height: 8),
-                            Text('Tap to upload transfer receipt', style: TextStyle(color: AppColors.subtitleGrey)),
+                            Text('اضغط لرفع إيصال التحويل', style: TextStyle(color: AppColors.subtitleGrey)),
                           ],
                         )
                       : ClipRRect(
@@ -220,7 +220,7 @@ class _RechargeBottomSheetState extends State<RechargeBottomSheet> {
                 const Padding(
                   padding: EdgeInsets.only(top: 8, left: 12),
                   child: Text(
-                    'Please upload a transfer receipt',
+                    'الرجاء رفع صورة إيصال التحويل',
                     style: TextStyle(color: Colors.red, fontSize: 12),
                   ),
                 ),
@@ -243,7 +243,7 @@ class _RechargeBottomSheetState extends State<RechargeBottomSheet> {
                             height: 24,
                             child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
                           )
-                        : const Text('Submit Request', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        : const Text('إرسال الطلب', style: TextStyle(color: Colors.white, fontSize: 16)),
                   );
                 },
               ),

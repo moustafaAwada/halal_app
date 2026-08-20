@@ -51,9 +51,9 @@ class CartCubit extends Cubit<CartState> {
     return _cachedItems;
   }
 
-  void _emitLoaded(List<CartItem> items, {bool isBusy = false}) {
+  void _emitLoaded(List<CartItem> items, {bool isBusy = false, bool hasNewItems = false}) {
     _cachedItems = items;
-    emit(CartLoaded(items: items, isBusy: isBusy));
+    emit(CartLoaded(items: items, isBusy: isBusy, hasNewItems: hasNewItems));
   }
 
   Future<void> loadCart() async {
@@ -72,9 +72,16 @@ class CartCubit extends Cubit<CartState> {
   Future<void> addToCart(
     int productId, {
     int quantity = 1,
+    int? menuSizeId,
+    List<int>? addonIds,
   }) async {
     final result = await _addToCartUseCase(
-      AddToCartParams(productId: productId, quantity: quantity),
+      AddToCartParams(
+        productId: productId,
+        quantity: quantity,
+        menuSizeId: menuSizeId,
+        addonIds: addonIds,
+      ),
     );
 
     result.fold(
@@ -86,8 +93,18 @@ class CartCubit extends Cubit<CartState> {
         emit(CartActionError(message: failure.message));
         _restoreLoadedState();
       },
-      (items) => _emitLoaded(items),
+      // hasNewItems: true triggers the red dot on the nav bar badge.
+      (items) => _emitLoaded(items, hasNewItems: true),
     );
+  }
+
+  /// Clears the notification badge. Call this when the user navigates to the
+  /// cart screen so the red dot disappears immediately.
+  void markCartAsSeen() {
+    final current = state;
+    if (current is CartLoaded && current.hasNewItems) {
+      emit(current.copyWith(hasNewItems: false));
+    }
   }
 
   Future<void> resolveMultipleRestaurantsConflict(int productId) async {

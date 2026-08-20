@@ -135,7 +135,7 @@ class _HomeContent extends StatelessWidget {
       color: AppColors.primaryBlue,
       onRefresh: () => context.read<HomeCubit>().loadHomeData(),
       child: ListView(
-        padding: const EdgeInsets.only(bottom: 24),
+        padding: const EdgeInsets.only(bottom: 120),
         children: [
           const HomeHeader(),
           HomeSearchBar(
@@ -280,11 +280,15 @@ Future<void> _addProductToCart(BuildContext context, int productId) async {
 
 void _openRestaurantDetail(BuildContext context, Restaurant restaurant) {
   final favoritesCubit = context.read<FavoritesCubit>();
+  final cartCubit = context.read<CartCubit>();
 
   Navigator.of(context).push(
     MaterialPageRoute<void>(
-      builder: (_) => BlocProvider.value(
-        value: favoritesCubit,
+      builder: (_) => MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: favoritesCubit),
+          BlocProvider.value(value: cartCubit),
+        ],
         child: RestaurantDetailPage(vendorId: restaurant.id),
       ),
     ),

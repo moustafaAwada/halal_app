@@ -27,7 +27,7 @@ class _WalletDashboardPageState extends State<WalletDashboardPage> {
       backgroundColor: const Color(0xFFF8F9FB),
       appBar: AppBar(
         title: const Text(
-          'My Wallet',
+          'محفظتي',
           style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryBlue),
         ),
         backgroundColor: Colors.transparent,
@@ -47,11 +47,11 @@ class _WalletDashboardPageState extends State<WalletDashboardPage> {
                 children: [
                   const Icon(Icons.error_outline, color: Colors.red, size: 48),
                   const SizedBox(height: 16),
-                  Text(state.errorMessage ?? 'Failed to load wallet data'),
+                  Text(state.errorMessage ?? 'فشل تحميل بيانات المحفظة'),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => context.read<WalletCubit>().loadWalletData(),
-                    child: const Text('Retry'),
+                    child: const Text('إعادة المحاولة'),
                   ),
                 ],
               ),
@@ -68,7 +68,7 @@ class _WalletDashboardPageState extends State<WalletDashboardPage> {
                 _buildBalanceCard(context, state.balance),
                 const SizedBox(height: 32),
                 const Text(
-                  'Transaction History',
+                  'سجل المعاملات',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -110,7 +110,7 @@ class _WalletDashboardPageState extends State<WalletDashboardPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Available Balance',
+                'الرصيد المتاح',
                 style: TextStyle(
                   color: Colors.white70,
                   fontSize: 14,
@@ -129,7 +129,7 @@ class _WalletDashboardPageState extends State<WalletDashboardPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            '${balance.toStringAsFixed(2)} EGP',
+            '${balance.toStringAsFixed(2)} ج.م',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 36,
@@ -151,7 +151,7 @@ class _WalletDashboardPageState extends State<WalletDashboardPage> {
                 elevation: 0,
               ),
               child: const Text(
-                'Top Up Wallet',
+                'شحن المحفظة',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -174,7 +174,7 @@ class _WalletDashboardPageState extends State<WalletDashboardPage> {
               Icon(Icons.history, size: 64, color: Colors.black12),
               SizedBox(height: 16),
               Text(
-                'No transaction history',
+                'لا يوجد سجل معاملات',
                 style: TextStyle(color: Colors.black45),
               ),
             ],
@@ -198,19 +198,23 @@ class _WalletDashboardPageState extends State<WalletDashboardPage> {
   Widget _buildHistoryCard(WalletRequest request) {
     Color statusColor;
     IconData statusIcon;
+    String statusText;
     
     switch (request.status.toLowerCase()) {
       case 'approved':
         statusColor = Colors.green;
         statusIcon = Icons.check_circle;
+        statusText = 'مقبول';
         break;
       case 'rejected':
         statusColor = Colors.red;
         statusIcon = Icons.cancel;
+        statusText = 'مرفوض';
         break;
       default:
         statusColor = Colors.orange;
         statusIcon = Icons.pending;
+        statusText = 'قيد المراجعة';
     }
 
     return Container(
@@ -242,7 +246,7 @@ class _WalletDashboardPageState extends State<WalletDashboardPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Top Up - ${request.paymentMethod.replaceAll('_', ' ')}',
+                  'شحن - ${request.paymentMethod.replaceAll('_', ' ')}',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
@@ -263,7 +267,7 @@ class _WalletDashboardPageState extends State<WalletDashboardPage> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '+${request.amount.toStringAsFixed(0)} EGP',
+                '+${request.amount.toStringAsFixed(0)} ج.م',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -278,7 +282,7 @@ class _WalletDashboardPageState extends State<WalletDashboardPage> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  request.status.toUpperCase(),
+                  statusText,
                   style: TextStyle(
                     color: statusColor,
                     fontSize: 10,

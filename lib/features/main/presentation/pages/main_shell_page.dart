@@ -140,7 +140,9 @@ class _MainShellPageState extends State<MainShellPage> {
                 if (index == 0 || index == _favoritesTabIndex) {
                   _favoritesCubit.loadFavorites();
                 } else if (index == _cartTabIndex) {
-                  _cartCubit.loadCart();
+                  _cartCubit
+                    ..markCartAsSeen()
+                    ..loadCart();
                 } else if (index == _ordersTabIndex) {
                   _ordersCubit.loadOrders(
                     status: _ordersCubit.selectedStatus,

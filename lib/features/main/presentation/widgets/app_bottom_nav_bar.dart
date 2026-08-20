@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../cart/presentation/cubit/cart_cubit.dart';
 
 class AppBottomNavBar extends StatelessWidget {
   const AppBottomNavBar({
@@ -85,9 +87,26 @@ class AppBottomNavBar extends StatelessWidget {
             ),
             Positioned(
               top: 0,
-              child: _CartButton(
-                isSelected: currentIndex == 2,
-                onTap: () => onItemSelected(2),
+              // BlocBuilder is scoped tightly to the cart button only,
+              // so only this widget rebuilds when hasNewItems changes.
+              child: BlocBuilder<CartCubit, CartState>(
+                buildWhen: (previous, current) {
+                  // Rebuild only when the badge visibility actually changes.
+                  final prevHas =
+                      previous is CartLoaded && previous.hasNewItems;
+                  final currHas =
+                      current is CartLoaded && current.hasNewItems;
+                  return prevHas != currHas;
+                },
+                builder: (context, state) {
+                  final hasNewItems =
+                      state is CartLoaded && state.hasNewItems;
+                  return _CartButton(
+                    isSelected: currentIndex == 2,
+                    hasNewItems: hasNewItems,
+                    onTap: () => onItemSelected(2),
+                  );
+                },
               ),
             ),
           ],
@@ -148,31 +167,53 @@ class _CartButton extends StatelessWidget {
   const _CartButton({
     required this.isSelected,
     required this.onTap,
+    required this.hasNewItems,
   });
 
   final bool isSelected;
   final VoidCallback onTap;
+  final bool hasNewItems;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.primaryBlue,
-      elevation: isSelected ? 6 : 4,
-      shadowColor: AppColors.primaryBlue.withValues(alpha: 0.45),
-      shape: const CircleBorder(),
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const CircleBorder(),
-        child: const SizedBox(
-          width: 56,
-          height: 56,
-          child: Icon(
-            Icons.shopping_cart_outlined,
-            color: AppColors.white,
-            size: 26,
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Material(
+          color: AppColors.primaryBlue,
+          elevation: isSelected ? 6 : 4,
+          shadowColor: AppColors.primaryBlue.withValues(alpha: 0.45),
+          shape: const CircleBorder(),
+          child: InkWell(
+            onTap: onTap,
+            customBorder: const CircleBorder(),
+            child: const SizedBox(
+              width: 56,
+              height: 56,
+              child: Icon(
+                Icons.shopping_cart_outlined,
+                color: AppColors.white,
+                size: 26,
+              ),
+            ),
           ),
         ),
-      ),
+        // Red dot badge — only visible when hasNewItems is true.
+        if (hasNewItems)
+          Positioned(
+            top: 2,
+            right: 2,
+            child: Container(
+              width: 13,
+              height: 13,
+              decoration: BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.white, width: 2),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

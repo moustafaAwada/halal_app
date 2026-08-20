@@ -1,8 +1,10 @@
 import 'package:equatable/equatable.dart';
 
+import 'addon.dart';
 import 'product.dart';
 import 'product_offer.dart';
 import 'product_vendor.dart';
+import 'size.dart';
 
 class ProductDetail extends Equatable {
   const ProductDetail({
@@ -21,6 +23,8 @@ class ProductDetail extends Equatable {
     this.totalSold = 0,
     this.isFavorite = false,
     this.vendor,
+    this.sizes = const [],
+    this.addons = const [],
   });
 
   final int id;
@@ -38,6 +42,12 @@ class ProductDetail extends Equatable {
   final int totalSold;
   final bool isFavorite;
   final ProductVendor? vendor;
+
+  /// Available size options for this product. Empty when the API returns none.
+  final List<Size> sizes;
+
+  /// Available optional add-ons for this product. Empty when the API returns none.
+  final List<Addon> addons;
 
   bool get isOffer => type == 'offer';
 
@@ -96,6 +106,9 @@ class ProductDetail extends Equatable {
       totalSold: totalSold > 0 ? totalSold : other.totalSold,
       isFavorite: isFavorite || other.isFavorite,
       vendor: vendor ?? other.vendor,
+      // Prefer the richer (API) list; fall back to the seed's list.
+      sizes: sizes.isNotEmpty ? sizes : other.sizes,
+      addons: addons.isNotEmpty ? addons : other.addons,
     );
   }
 
@@ -116,5 +129,7 @@ class ProductDetail extends Equatable {
         totalSold,
         isFavorite,
         vendor,
+        sizes,
+        addons,
       ];
 }

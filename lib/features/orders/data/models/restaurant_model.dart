@@ -7,6 +7,13 @@ class RestaurantModel extends Restaurant {
     required super.nameAr,
     required super.nameEn,
     required super.phone,
+    super.shortDescription,
+    super.whatsapp,
+    super.imageUrl,
+    super.cover,
+    super.city,
+    super.area,
+    super.address,
   });
 
   factory RestaurantModel.fromJson(Map<String, dynamic> json) {
@@ -15,6 +22,13 @@ class RestaurantModel extends Restaurant {
       nameAr: json['name_ar']?.toString() ?? '',
       nameEn: json['name_en']?.toString() ?? '',
       phone: json['phone']?.toString() ?? '',
+      shortDescription: json['short_description']?.toString() ?? '',
+      whatsapp: json['whatsapp']?.toString() ?? '',
+      imageUrl: json['image_url']?.toString() ?? '',
+      cover: json['cover']?.toString() ?? '',
+      city: json['city']?.toString() ?? '',
+      area: json['area']?.toString() ?? '',
+      address: json['address']?.toString() ?? '',
     );
   }
 
@@ -23,6 +37,13 @@ class RestaurantModel extends Restaurant {
         'name_ar': nameAr,
         'name_en': nameEn,
         'phone': phone,
+        'short_description': shortDescription,
+        'whatsapp': whatsapp,
+        'image_url': imageUrl,
+        'cover': cover,
+        'city': city,
+        'area': area,
+        'address': address,
       };
 
   Restaurant toEntity() => Restaurant(
@@ -30,5 +51,12 @@ class RestaurantModel extends Restaurant {
         nameAr: nameAr,
         nameEn: nameEn,
         phone: phone,
+        shortDescription: shortDescription,
+        whatsapp: whatsapp,
+        imageUrl: imageUrl,
+        cover: cover,
+        city: city,
+        area: area,
+        address: address,
       );
 }

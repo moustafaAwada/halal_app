@@ -151,7 +151,6 @@ class AppRouter {
     );
   }
 
-  /// Post-auth gateway: Food Delivery vs Request a Ride.
   static void goToServiceSelection(BuildContext context) {
     Navigator.of(context).pushNamedAndRemoveUntil(
       AppRoutes.serviceSelection,

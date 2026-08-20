@@ -29,7 +29,7 @@ class _WalletTopUpPageState extends State<WalletTopUpPage> {
                 children: [
                   Icon(Icons.check_circle, color: Colors.white),
                   SizedBox(width: 8),
-                  Text('Top-up request submitted successfully!'),
+                  Text('تم إرسال طلب الشحن بنجاح!'),
                 ],
               ),
               backgroundColor: Colors.green.shade600,
@@ -59,7 +59,7 @@ class _WalletTopUpPageState extends State<WalletTopUpPage> {
       backgroundColor: const Color(0xFFF8F9FB),
       appBar: AppBar(
         title: const Text(
-          'Top-up Wallet',
+          'شحن المحفظة',
           style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
         ),
         backgroundColor: Colors.transparent,
@@ -119,7 +119,7 @@ class _WalletTopUpPageState extends State<WalletTopUpPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'CURRENT BALANCE',
+                'الرصيد الحالي',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.8),
                   fontSize: 12,
@@ -158,7 +158,7 @@ class _WalletTopUpPageState extends State<WalletTopUpPage> {
               Padding(
                 padding: EdgeInsets.only(bottom: 6),
                 child: Text(
-                  'EGP',
+                  'ج.م',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -173,14 +173,14 @@ class _WalletTopUpPageState extends State<WalletTopUpPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Last updated: Just now',
+                'آخر تحديث: الآن',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.7),
                   fontSize: 12,
                 ),
               ),
               Text(
-                'Wallet ID: •••• 4921',
+                'رقم المحفظة: •••• 4921',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.7),
                   fontSize: 12,
@@ -211,7 +211,7 @@ class _WalletTopUpPageState extends State<WalletTopUpPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Request Details',
+            'تفاصيل الطلب',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
@@ -221,33 +221,33 @@ class _WalletTopUpPageState extends State<WalletTopUpPage> {
           const SizedBox(height: 20),
           _buildTextField(
             controller: _nameController,
-            label: 'Full Name',
+            label: 'الاسم بالكامل',
             icon: Icons.person_outline,
-            validator: (value) => value!.isEmpty ? 'Please enter your name' : null,
+            validator: (value) => value!.isEmpty ? 'الرجاء إدخال اسمك' : null,
           ),
           const SizedBox(height: 16),
           _buildTextField(
             controller: _amountController,
-            label: 'Transfer Amount',
+            label: 'مبلغ التحويل',
             icon: Icons.payments_outlined,
             keyboardType: TextInputType.number,
-            suffixText: 'EGP',
+            suffixText: 'ج.م',
             validator: (value) {
-              if (value!.isEmpty) return 'Please enter amount';
-              if (double.tryParse(value) == null) return 'Invalid amount';
+              if (value!.isEmpty) return 'الرجاء إدخال المبلغ';
+              if (double.tryParse(value) == null) return 'مبلغ غير صحيح';
               return null;
             },
           ),
           const SizedBox(height: 16),
           _buildTextField(
             controller: _transactionDetailsController,
-            label: 'Sender Phone or Transaction ID',
+            label: 'رقم هاتف المرسل أو رقم المعاملة',
             icon: Icons.info_outline,
-            validator: (value) => value!.isEmpty ? 'Please enter details' : null,
+            validator: (value) => value!.isEmpty ? 'الرجاء إدخال التفاصيل' : null,
           ),
           const SizedBox(height: 24),
           const Text(
-            'Upload Transfer Receipt (صورة التحويل)',
+            'رفع صورة إيصال التحويل',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
@@ -341,19 +341,19 @@ class _WalletTopUpPageState extends State<WalletTopUpPage> {
                 style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
                 children: [
                   TextSpan(
-                    text: 'Click to upload',
+                    text: 'اضغط للرفع',
                     style: TextStyle(
                       color: Color(0xFF4338CA),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  TextSpan(text: ' or drag and drop'),
+                  TextSpan(text: ' أو اسحب وأفلت'),
                 ],
               ),
             ),
             const SizedBox(height: 4),
             const Text(
-              'PNG, JPG up to 5MB',
+              'PNG, JPG حتى 5 ميجابايت',
               style: TextStyle(
                 fontSize: 12,
                 color: Color(0xFF9CA3AF),
@@ -391,7 +391,7 @@ class _WalletTopUpPageState extends State<WalletTopUpPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Submit Request',
+                    'إرسال الطلب',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

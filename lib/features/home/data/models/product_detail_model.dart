@@ -1,6 +1,8 @@
 import '../../../../core/utils/json_parsers.dart';
 import '../../domain/entities/product_detail.dart';
+import 'addon_model.dart';
 import 'product_vendor_model.dart';
+import 'size_model.dart';
 
 class ProductDetailModel extends ProductDetail {
   const ProductDetailModel({
@@ -19,6 +21,8 @@ class ProductDetailModel extends ProductDetail {
     super.totalSold,
     super.isFavorite,
     super.vendor,
+    super.sizes,
+    super.addons,
   });
 
   factory ProductDetailModel.fromJson(Map<String, dynamic> json) {
@@ -36,6 +40,24 @@ class ProductDetailModel extends ProductDetail {
         Map<String, dynamic>.from(vendorJson),
       );
     }
+
+    // Safely parse the sizes list; defaults to empty if missing or malformed.
+    final sizesJson = json['sizes'];
+    final sizes = sizesJson is List
+        ? sizesJson
+            .whereType<Map>()
+            .map((e) => SizeModel.fromJson(Map<String, dynamic>.from(e)))
+            .toList()
+        : <SizeModel>[];
+
+    // Safely parse the addons list; defaults to empty if missing or malformed.
+    final addonsJson = json['addons'];
+    final addons = addonsJson is List
+        ? addonsJson
+            .whereType<Map>()
+            .map((e) => AddonModel.fromJson(Map<String, dynamic>.from(e)))
+            .toList()
+        : <AddonModel>[];
 
     return ProductDetailModel(
       id: JsonParsers.toInt(json['id']),
@@ -59,6 +81,8 @@ class ProductDetailModel extends ProductDetail {
       totalSold: JsonParsers.toInt(json['total_sold']),
       isFavorite: JsonParsers.toBool(json['isFavorite']),
       vendor: vendor,
+      sizes: sizes,
+      addons: addons,
     );
   }
 
@@ -91,5 +115,7 @@ class ProductDetailModel extends ProductDetail {
         totalSold: totalSold,
         isFavorite: isFavorite,
         vendor: vendor,
+        sizes: sizes,
+        addons: addons,
       );
 }
