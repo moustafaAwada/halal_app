@@ -176,6 +176,9 @@ abstract final class ApiConstants {
   static String rebookTripUrl(int tripId) =>
       '$tripsBaseUrl/$tripId/rebook';
 
+  static String getTripByIdUrl(int tripId) =>
+      '$tripsBaseUrl/$tripId';
+
   // ============================================================
   // ETA
   // ============================================================

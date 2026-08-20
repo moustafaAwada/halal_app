@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'driver_info.dart';
 import 'trip_status.dart';
 
 class Trip extends Equatable {
@@ -19,6 +20,7 @@ class Trip extends Equatable {
     this.durationMinutes,
     this.isPrebooking = false,
     this.prebookingTime,
+    this.driver,
   });
 
   final int id;
@@ -37,6 +39,10 @@ class Trip extends Equatable {
   final bool isPrebooking;
   final DateTime? prebookingTime;
 
+  /// Driver information populated when a driver has been assigned to the trip.
+  /// Null while the trip is in the `requested` (searching) state.
+  final DriverInfo? driver;
+
   Trip copyWith({
     int? id,
     TripStatus? status,
@@ -53,6 +59,7 @@ class Trip extends Equatable {
     int? durationMinutes,
     bool? isPrebooking,
     DateTime? prebookingTime,
+    DriverInfo? driver,
   }) {
     return Trip(
       id: id ?? this.id,
@@ -70,6 +77,7 @@ class Trip extends Equatable {
       durationMinutes: durationMinutes ?? this.durationMinutes,
       isPrebooking: isPrebooking ?? this.isPrebooking,
       prebookingTime: prebookingTime ?? this.prebookingTime,
+      driver: driver ?? this.driver,
     );
   }
 
@@ -90,5 +98,6 @@ class Trip extends Equatable {
         durationMinutes,
         isPrebooking,
         prebookingTime,
+        driver,
       ];
 }

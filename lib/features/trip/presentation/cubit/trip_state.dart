@@ -17,6 +17,27 @@ final class TripLoading extends TripState {
   const TripLoading();
 }
 
+/// Emitted immediately after a trip is created and while the backend is
+/// searching for an available driver. This replaces the old [TripRequested]
+/// as the "waiting" state so the UI can show a pulsing search indicator.
+final class TripSearchingForDriver extends TripState {
+  const TripSearchingForDriver({
+    required this.trip,
+    this.successMessage,
+  });
+
+  final Trip trip;
+
+  @override
+  final String? successMessage;
+
+  @override
+  List<Object?> get props => [trip, successMessage];
+}
+
+/// Legacy alias kept for backward-compatibility with any code that still
+/// pattern-matches on [TripRequested]. Points to the same data as
+/// [TripSearchingForDriver].
 final class TripRequested extends TripState {
   const TripRequested({
     required this.trip,

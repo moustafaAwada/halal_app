@@ -198,4 +198,24 @@ class TripRepositoryImpl implements TripRepository {
       );
     }
   }
+
+  @override
+  Future<Either<Failure, Trip>> getTripDetails(int tripId) async {
+    try {
+      final result = await _remoteDataSource.getTripDetails(tripId);
+      return Right(result.toEntity());
+    } on ServerException catch (e) {
+      return Left(
+        ServerFailure(
+          message: e.message.isNotEmpty
+              ? e.message
+              : 'حدث خطأ أثناء جلب تفاصيل الرحلة',
+        ),
+      );
+    } catch (_) {
+      return const Left(
+        ServerFailure(message: 'حدث خطأ أثناء جلب تفاصيل الرحلة'),
+      );
+    }
+  }
 }

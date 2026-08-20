@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:developer' as developer;
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -9,6 +12,7 @@ import '../../domain/usecases/accept_trip.dart';
 import '../../domain/usecases/cancel_trip.dart';
 import '../../domain/usecases/complete_trip.dart';
 import '../../domain/usecases/driver_arrived.dart';
+import '../../domain/usecases/get_trip_details.dart';
 import '../../domain/usecases/rate_trip.dart';
 import '../../domain/usecases/request_trip.dart';
 import '../../domain/usecases/start_trip.dart';
@@ -16,6 +20,14 @@ import '../../domain/usecases/update_tracking.dart';
 
 part 'trip_state.dart';
 
+const _kPollingInterval = Duration(seconds: 4);
+
+const _kTerminalStatuses = {
+  TripStatus.completed,
+  TripStatus.cancelledByCustomer,
+  TripStatus.cancelledByDriver,
+  TripStatus.noDriverFound,
+};
 
 class TripCubit extends Cubit<TripState> {
   TripCubit({
@@ -27,6 +39,7 @@ class TripCubit extends Cubit<TripState> {
     required StartTripUseCase startTripUseCase,
     required UpdateTrackingUseCase updateTrackingUseCase,
     required CompleteTripUseCase completeTripUseCase,
+    required GetTripDetailsUseCase getTripDetailsUseCase,
   })  : _requestTripUseCase = requestTripUseCase,
         _cancelTripUseCase = cancelTripUseCase,
         _rateTripUseCase = rateTripUseCase,
@@ -35,6 +48,7 @@ class TripCubit extends Cubit<TripState> {
         _startTripUseCase = startTripUseCase,
         _updateTrackingUseCase = updateTrackingUseCase,
         _completeTripUseCase = completeTripUseCase,
+        _getTripDetailsUseCase = getTripDetailsUseCase,
         super(const TripInitial());
 
   final RequestTripUseCase _requestTripUseCase;
@@ -45,9 +59,15 @@ class TripCubit extends Cubit<TripState> {
   final StartTripUseCase _startTripUseCase;
   final UpdateTrackingUseCase _updateTrackingUseCase;
   final CompleteTripUseCase _completeTripUseCase;
+  final GetTripDetailsUseCase _getTripDetailsUseCase;
+
+  Timer? _pollingTimer;
+
+  // ─── Helpers ────────────────────────────────────────────────────────────────
 
   Trip? get currentTrip => switch (state) {
         TripRequested(:final trip) => trip,
+        TripSearchingForDriver(:final trip) => trip,
         DriverAccepted(:final trip) => trip,
         DriverArrived(:final trip) => trip,
         TripInProgress(:final trip) => trip,
@@ -57,6 +77,7 @@ class TripCubit extends Cubit<TripState> {
         _ => null,
       };
 
+  // ─── Public API ─────────────────────────────────────────────────────────────
 
   Future<void> requestNewTrip(Map<String, dynamic> data) async {
     emit(const TripLoading());
@@ -93,19 +114,111 @@ class TripCubit extends Cubit<TripState> {
           isPrebooking: isPrebooking,
           prebookingTime: prebookingTime,
         );
-        emit(
-          enriched.status == TripStatus.noDriverFound
-              ? NoDriverFound(trip: enriched)
-              : TripRequested(
-                  trip: enriched,
-                  successMessage: isPrebooking
-                      ? 'تم حجز الرحلة بنجاح'
-                      : 'تم طلب الرحلة بنجاح',
-                ),
-        );
+
+        if (enriched.status == TripStatus.noDriverFound) {
+          emit(NoDriverFound(trip: enriched));
+        } else {
+          final successMessage =
+              isPrebooking ? 'تم حجز الرحلة بنجاح' : 'تم طلب الرحلة بنجاح';
+          emit(TripSearchingForDriver(
+            trip: enriched,
+            successMessage: successMessage,
+          ));
+          startTrackingTrip(enriched.id);
+        }
       },
     );
   }
+
+
+  void startTrackingTrip(int tripId) {
+    _stopPolling();
+
+    developer.log(
+      'Polling started for trip $tripId (every ${_kPollingInterval.inSeconds}s)',
+      name: 'TripCubit',
+    );
+
+    _pollTripStatus(tripId);
+
+    _pollingTimer = Timer.periodic(_kPollingInterval, (_) async {
+      await _pollTripStatus(tripId);
+    });
+  }
+
+  Future<void> _pollTripStatus(int tripId) async {
+    if (isClosed) return;
+
+    final result = await _getTripDetailsUseCase(tripId);
+
+    result.fold(
+      (failure) {
+        // Log silently — don't interrupt the UI with polling errors.
+        developer.log(
+          'Polling error for trip $tripId: ${failure.message}',
+          name: 'TripCubit',
+        );
+      },
+      (updatedTrip) {
+        if (isClosed) return;
+
+        // Stop polling for terminal statuses.
+        if (_kTerminalStatuses.contains(updatedTrip.status)) {
+          _stopPolling();
+        }
+
+        _emitStateFromTrip(updatedTrip);
+      },
+    );
+  }
+
+  void _emitStateFromTrip(Trip trip) {
+    developer.log(
+      'Trip status updated to: ${trip.status.apiValue}',
+      name: 'TripCubit',
+    );
+    switch (trip.status) {
+      case TripStatus.requested:
+        emit(TripSearchingForDriver(trip: trip));
+      case TripStatus.accepted:
+        // Preserve existing tracking data if the state hasn't changed category.
+        final existingTracking = switch (state) {
+          DriverAccepted(:final lastTracking) => lastTracking,
+          _ => null,
+        };
+        emit(DriverAccepted(trip: trip, lastTracking: existingTracking));
+      case TripStatus.driverArrived:
+        final existingTracking = switch (state) {
+          DriverArrived(:final lastTracking) => lastTracking,
+          _ => null,
+        };
+        emit(DriverArrived(trip: trip, lastTracking: existingTracking));
+      case TripStatus.inProgress:
+        final existingTracking = switch (state) {
+          TripInProgress(:final lastTracking) => lastTracking,
+          _ => null,
+        };
+        emit(TripInProgress(trip: trip, lastTracking: existingTracking));
+      case TripStatus.noDriverFound:
+        emit(NoDriverFound(trip: trip));
+      case TripStatus.cancelledByCustomer || TripStatus.cancelledByDriver:
+        emit(TripCancelled(
+          trip: trip,
+          successMessage: trip.status == TripStatus.cancelledByDriver
+              ? 'تم إلغاء الرحلة من قِبل السائق'
+              : null,
+        ));
+      case TripStatus.completed:
+        break;
+    }
+  }
+
+  void _stopPolling() {
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
+  }
+
+  // ─── Existing actions ────────────────────────────────────────────────────────
 
   Future<void> cancelCurrentTrip(String reason) async {
     final trip = currentTrip;
@@ -114,6 +227,7 @@ class TripCubit extends Cubit<TripState> {
       return;
     }
 
+    _stopPolling();
     emit(const TripLoading());
 
     final result = await _cancelTripUseCase(
@@ -161,7 +275,6 @@ class TripCubit extends Cubit<TripState> {
       ),
     );
   }
-
 
   Future<void> acceptTrip() async {
     final trip = currentTrip;
@@ -256,6 +369,7 @@ class TripCubit extends Cubit<TripState> {
     final trip = currentTrip;
     if (trip == null) return;
 
+    _stopPolling();
     emit(const TripLoading());
 
     final result = await _completeTripUseCase(
@@ -279,17 +393,29 @@ class TripCubit extends Cubit<TripState> {
     );
   }
 
-  void reset() => emit(const TripInitial());
+  void reset() {
+    _stopPolling();
+    emit(const TripInitial());
+  }
 
   /// Applies a trip returned from rebook API into the active lifecycle.
   void applyRebookedTrip(Trip trip) {
     emit(
-      TripRequested(
+      TripSearchingForDriver(
         trip: trip,
         successMessage: 'تم إعادة الحجز بنجاح',
       ),
     );
+    startTrackingTrip(trip.id);
   }
+
+  @override
+  Future<void> close() {
+    _stopPolling();
+    return super.close();
+  }
+
+  // ─── Static helpers ──────────────────────────────────────────────────────────
 
   static double? _asDouble(dynamic value) {
     if (value is double) return value;

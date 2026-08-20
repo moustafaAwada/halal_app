@@ -31,6 +31,8 @@ abstract class TripRemoteDataSource {
   );
 
   Future<String> rateTrip(int tripId, Map<String, dynamic> data);
+
+  Future<TripModel> getTripDetails(int tripId);
 }
 
 class TripRemoteDataSourceImpl implements TripRemoteDataSource {
@@ -166,6 +168,20 @@ class TripRemoteDataSourceImpl implements TripRemoteDataSource {
       );
       final body = _asMap(response.data);
       return body['message']?.toString() ?? 'تم التقييم بنجاح';
+    } on DioException catch (e) {
+      throw _errorMapper.mapToException(e);
+    }
+  }
+
+  @override
+  Future<TripModel> getTripDetails(int tripId) async {
+    try {
+      final response = await _dio.get<dynamic>(
+        ApiConstants.getTripByIdUrl(tripId),
+      );
+      final body = _asMap(response.data);
+      final dataMap = _unwrapDataMap(body) ?? body;
+      return TripModel.fromJson(_extractTripJson(dataMap));
     } on DioException catch (e) {
       throw _errorMapper.mapToException(e);
     }

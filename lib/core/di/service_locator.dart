@@ -97,6 +97,7 @@ import '../../features/trip/domain/usecases/accept_trip.dart';
 import '../../features/trip/domain/usecases/cancel_trip.dart';
 import '../../features/trip/domain/usecases/complete_trip.dart';
 import '../../features/trip/domain/usecases/driver_arrived.dart';
+import '../../features/trip/domain/usecases/get_trip_details.dart';
 import '../../features/trip/domain/usecases/rate_trip.dart';
 import '../../features/trip/domain/usecases/request_trip.dart';
 import '../../features/trip/domain/usecases/start_trip.dart';
@@ -389,6 +390,7 @@ void _initTrip() {
       startTripUseCase: sl(),
       updateTrackingUseCase: sl(),
       completeTripUseCase: sl(),
+      getTripDetailsUseCase: sl(),
     ),
   );
 
@@ -400,6 +402,7 @@ void _initTrip() {
   sl.registerLazySingleton(() => StartTripUseCase(sl()));
   sl.registerLazySingleton(() => UpdateTrackingUseCase(sl()));
   sl.registerLazySingleton(() => CompleteTripUseCase(sl()));
+  sl.registerLazySingleton(() => GetTripDetailsUseCase(sl()));
 
   sl.registerLazySingleton<TripRepository>(
     () => TripRepositoryImpl(remoteDataSource: sl()),

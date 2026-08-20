@@ -33,4 +33,6 @@ abstract class TripRepository {
     int tripId,
     Map<String, dynamic> data,
   );
+
+  Future<Either<Failure, Trip>> getTripDetails(int tripId);
 }
