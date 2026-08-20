@@ -70,7 +70,7 @@ class _LoginPageState extends State<LoginPage> {
           width: 140,
           fit: BoxFit.contain,
           placeholderIcon: Icons.hexagon_outlined,
-          placeholderLabel: 'logo.png',
+          placeholderLabel: 'logo.jpeg',
         ),
         title: 'تسجيل الدخول',
         subtitle: 'مرحباً بك مجدداً',

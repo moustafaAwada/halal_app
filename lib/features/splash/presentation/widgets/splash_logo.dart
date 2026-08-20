@@ -33,7 +33,7 @@ class SplashLogo extends StatelessWidget {
         width: double.infinity,
         fit: BoxFit.contain,
         placeholderIcon: Icons.hexagon_outlined,
-        placeholderLabel: 'logo.png',
+        placeholderLabel: 'logo.jpeg',
       ),
     );
   }

@@ -62,6 +62,20 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   bloc_test: ^10.0.0
   mocktail: ^1.0.5
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  # Used as fallback for older Android & as the iOS icon
+  image_path: "assets/images/logo.jpeg"
+  min_sdk_android: 21
+  # Adaptive icon (Android 8+): foreground fills more of the icon space,
+  # making the logo appear noticeably larger.
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/logo.jpeg"
+  web:
+    generate: false
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -11,14 +11,12 @@ class CheckoutLocationCard extends StatelessWidget {
     required this.hasLocation,
     required this.onSelectOnMap,
     required this.onUseGps,
-    this.latitude,
-    this.longitude,
+    this.address,
   });
 
   final bool isLocating;
   final bool hasLocation;
-  final double? latitude;
-  final double? longitude;
+  final String? address;
   final VoidCallback? onSelectOnMap;
   final VoidCallback? onUseGps;
 
@@ -45,22 +43,28 @@ class CheckoutLocationCard extends StatelessWidget {
             ),
           ] else if (hasLocation) ...[
             const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: _CoordChip(
-                    label: 'العرض',
-                    value: latitude!.toStringAsFixed(5),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              decoration: BoxDecoration(
+                color: AppColors.searchBackground,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.place_outlined, color: AppColors.primaryBlue, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      address ?? 'موقع التوصيل المحدد',
+                      style: AppTextStyles.skipButton(color: Colors.black87)
+                          .copyWith(fontSize: 14, height: 1.4),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _CoordChip(
-                    label: 'الطول',
-                    value: longitude!.toStringAsFixed(5),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
           const SizedBox(height: 14),
@@ -193,40 +197,3 @@ class _LocationStatusBanner extends StatelessWidget {
   }
 }
 
-class _CoordChip extends StatelessWidget {
-  const _CoordChip({
-    required this.label,
-    required this.value,
-  });
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.searchBackground,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: AppTextStyles.onboardingSubtitle(
-              color: Colors.black45,
-            ).copyWith(fontSize: 11),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: AppTextStyles.skipButton(color: Colors.black87)
-                .copyWith(fontSize: 13),
-          ),
-        ],
-      ),
-    );
-  }
-}
