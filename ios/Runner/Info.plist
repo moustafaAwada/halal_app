@@ -31,6 +31,7 @@
 		<string>tel</string>
 		<string>whatsapp</string>
 		<string>https</string>
+		<string>http</string>
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>نحتاج إلى موقعك لتحديد عنوان التوصيل</string>

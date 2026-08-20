@@ -13,13 +13,18 @@ import '../../features/auth/domain/usecases/send_verification_code_usecase.dart'
 import '../../features/auth/presentation/cubit/forgot_password_cubit.dart';
 import '../../features/auth/presentation/cubit/login_cubit.dart';
 import '../../features/auth/presentation/cubit/register_cubit.dart';
+import '../../features/home/data/datasources/ads_remote_data_source.dart';
 import '../../features/home/data/datasources/home_remote_data_source.dart';
+import '../../features/home/data/repositories/ads_repository_impl.dart';
 import '../../features/home/data/repositories/home_repository_impl.dart';
+import '../../features/home/domain/repositories/ads_repository.dart';
 import '../../features/home/domain/repositories/home_repository.dart';
+import '../../features/home/domain/usecases/get_available_ads.dart';
 import '../../features/home/domain/usecases/get_home_data.dart';
 import '../../features/home/domain/usecases/get_offer_details.dart';
 import '../../features/home/domain/usecases/get_product_details.dart';
 import '../../features/home/domain/usecases/get_restaurant_details.dart';
+import '../../features/home/presentation/cubit/ads_cubit.dart';
 import '../../features/home/presentation/cubit/home_cubit.dart';
 import '../../features/home/presentation/cubit/product_detail_cubit.dart';
 import '../../features/home/presentation/cubit/restaurant_detail_cubit.dart';
@@ -196,6 +201,7 @@ void _initSearch() {
 
 void _initHome() {
   sl.registerFactory(() => HomeCubit(getHomeDataUseCase: sl()));
+  sl.registerFactory(() => AdsCubit(getAvailableAdsUseCase: sl()));
   sl.registerFactory(
     () => ProductDetailCubit(
       getProductDetailsUseCase: sl(),
@@ -206,14 +212,24 @@ void _initHome() {
     () => RestaurantDetailCubit(getRestaurantDetailsUseCase: sl()),
   );
   sl.registerLazySingleton(() => GetHomeDataUseCase(sl()));
+  sl.registerLazySingleton(() => GetAvailableAdsUseCase(sl()));
   sl.registerLazySingleton(() => GetProductDetailsUseCase(sl()));
   sl.registerLazySingleton(() => GetOfferDetailsUseCase(sl()));
   sl.registerLazySingleton(() => GetRestaurantDetailsUseCase(sl()));
   sl.registerLazySingleton<HomeRepository>(
     () => HomeRepositoryImpl(remoteDataSource: sl()),
   );
+  sl.registerLazySingleton<AdsRepository>(
+    () => AdsRepositoryImpl(remoteDataSource: sl()),
+  );
   sl.registerLazySingleton<HomeRemoteDataSource>(
     () => HomeRemoteDataSourceImpl(
+      dio: sl<DioClient>().dio,
+      errorMapper: sl(),
+    ),
+  );
+  sl.registerLazySingleton<AdsRemoteDataSource>(
+    () => AdsRemoteDataSourceImpl(
       dio: sl<DioClient>().dio,
       errorMapper: sl(),
     ),

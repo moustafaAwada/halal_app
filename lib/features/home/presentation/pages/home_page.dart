@@ -16,6 +16,7 @@ import '../../../search/presentation/widgets/search_shimmer.dart';
 import '../../domain/entities/home_data.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/entities/restaurant.dart';
+import '../cubit/ads_cubit.dart';
 import '../cubit/home_cubit.dart';
 import '../../domain/entities/product_offer.dart';
 import '../pages/home_view_all_page.dart';
@@ -58,6 +59,7 @@ class _HomePageState extends State<HomePage> {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => sl<HomeCubit>()..loadHomeData()),
+        BlocProvider(create: (_) => sl<AdsCubit>()..loadAds()),
         BlocProvider(create: (_) => sl<SearchCubit>()),
         BlocProvider(
           create: (_) => sl<UnreadNotificationsCubit>()..checkUnread(),
@@ -133,7 +135,12 @@ class _HomeContent extends StatelessWidget {
       },
       child: RefreshIndicator(
       color: AppColors.primaryBlue,
-      onRefresh: () => context.read<HomeCubit>().loadHomeData(),
+      onRefresh: () async {
+        await Future.wait([
+          context.read<HomeCubit>().loadHomeData(),
+          context.read<AdsCubit>().loadAds(),
+        ]);
+      },
       child: ListView(
         padding: const EdgeInsets.only(bottom: 120),
         children: [

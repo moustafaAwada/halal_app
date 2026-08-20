@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:halal_app/app.dart';
-import 'package:halal_app/core/di/service_locator.dart';
-import 'package:halal_app/features/splash/presentation/pages/splash_page.dart';
+import 'package:Halal/app.dart';
+import 'package:Halal/core/di/service_locator.dart';
+import 'package:Halal/features/splash/presentation/pages/splash_page.dart';
 
 void main() {
   testWidgets('Splash screen shows brand name', (WidgetTester tester) async {

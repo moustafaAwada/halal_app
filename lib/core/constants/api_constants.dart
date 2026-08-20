@@ -184,4 +184,10 @@ abstract final class ApiConstants {
   // ============================================================
 
   static const eta = '/eta';
+
+  // ============================================================
+  // Ads
+  // ============================================================
+
+  static const adsAvailableUrl = '$_apiBaseUrl/ads/available';
 }
