@@ -5,7 +5,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/snackbar_utils.dart';
 import '../../../home/presentation/widgets/home_shimmer.dart';
+import '../../domain/entities/notification_item.dart';
 import '../cubit/notifications_cubit.dart';
+import '../widgets/alert_ui_helpers.dart';
 import '../widgets/notification_card.dart';
 import '../widgets/notifications_shimmer.dart';
 
@@ -102,33 +104,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             ? _NotificationsEmptyView(
                                 filter: selectedFilter,
                               )
-                            : RefreshIndicator(
-                                color: AppColors.primaryBlue,
+                            : _GroupedNotificationsListView(
+                                notifications: notifications,
                                 onRefresh: () => context
                                     .read<NotificationsCubit>()
                                     .loadNotifications(
                                       filter: selectedFilter,
                                     ),
-                                child: ListView.separated(
-                                  padding: const EdgeInsets.fromLTRB(
-                                    20,
-                                    8,
-                                    20,
-                                    24,
-                                  ),
-                                  itemCount: notifications.length,
-                                  separatorBuilder: (_, __) =>
-                                      const SizedBox(height: 12),
-                                  itemBuilder: (context, index) {
-                                    final item = notifications[index];
-                                    return NotificationCard(
-                                      notification: item,
-                                      onTap: () => context
-                                          .read<NotificationsCubit>()
-                                          .markAsRead(item.id),
-                                    );
-                                  },
-                                ),
                               ),
                       _ => const NotificationsShimmer(),
                     },
@@ -138,6 +120,59 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             },
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _GroupedNotificationsListView extends StatelessWidget {
+  const _GroupedNotificationsListView({
+    required this.notifications,
+    required this.onRefresh,
+  });
+
+  final List<NotificationItem> notifications;
+  final Future<void> Function() onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    final groupedAlerts = AlertUiHelpers.groupAlerts(notifications);
+
+    return RefreshIndicator(
+      color: AppColors.primaryBlue,
+      onRefresh: onRefresh,
+      child: ListView.builder(
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+        itemCount: groupedAlerts.length,
+        itemBuilder: (context, sectionIndex) {
+          final sectionTitle = groupedAlerts.keys.elementAt(sectionIndex);
+          final sectionItems = groupedAlerts[sectionTitle]!;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 12, bottom: 8),
+                child: Text(
+                  sectionTitle,
+                  style: AppTextStyles.onboardingTitle(
+                    color: Colors.black87,
+                  ).copyWith(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              ...sectionItems.map(
+                (item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: NotificationCard(
+                    notification: item,
+                    onTap: () =>
+                        context.read<NotificationsCubit>().markAsRead(item.id),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

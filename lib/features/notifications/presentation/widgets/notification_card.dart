@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/entities/notification_item.dart';
+import 'alert_ui_helpers.dart';
 
 class NotificationCard extends StatelessWidget {
   const NotificationCard({
@@ -17,10 +18,11 @@ class NotificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUnread = !notification.read;
+    final visual = AlertUiHelpers.alertVisualFor(notification);
 
     return Material(
       color: isUnread
-          ? AppColors.reviewsBackground
+          ? visual.backgroundColor.withValues(alpha: 0.35)
           : AppColors.white,
       borderRadius: BorderRadius.circular(18),
       clipBehavior: Clip.antiAlias,
@@ -36,16 +38,14 @@ class NotificationCard extends StatelessWidget {
                 height: 42,
                 decoration: BoxDecoration(
                   color: isUnread
-                      ? AppColors.primaryBlue.withValues(alpha: 0.12)
+                      ? visual.backgroundColor
                       : AppColors.searchBackground,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  _iconForType(notification.type),
+                  visual.icon,
                   size: 22,
-                  color: isUnread
-                      ? AppColors.primaryBlue
-                      : AppColors.subtitleGrey,
+                  color: isUnread ? visual.color : AppColors.subtitleGrey,
                 ),
               ),
               const SizedBox(width: 12),
@@ -72,8 +72,8 @@ class NotificationCard extends StatelessWidget {
                           Container(
                             width: 8,
                             height: 8,
-                            decoration: const BoxDecoration(
-                              color: AppColors.primaryBlue,
+                            decoration: BoxDecoration(
+                              color: visual.color,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -94,7 +94,7 @@ class NotificationCard extends StatelessWidget {
                     if (notification.createdAt != null) ...[
                       const SizedBox(height: 8),
                       Text(
-                        _formatDate(notification.createdAt!),
+                        AlertUiHelpers.formatAlertTime(notification.createdAt),
                         style: AppTextStyles.onboardingSubtitle(
                           color: AppColors.subtitleGrey,
                         ).copyWith(fontSize: 12),
@@ -108,24 +108,5 @@ class NotificationCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  IconData _iconForType(String type) {
-    return switch (type) {
-      'new_order' || 'order_confirmed' => Icons.receipt_long_rounded,
-      'payment' => Icons.payments_outlined,
-      'welcome' => Icons.waving_hand_outlined,
-      'system' => Icons.info_outline_rounded,
-      _ => Icons.notifications_outlined,
-    };
-  }
-
-  String _formatDate(DateTime date) {
-    final local = date.toLocal();
-    final day = local.day.toString().padLeft(2, '0');
-    final month = local.month.toString().padLeft(2, '0');
-    final hour = local.hour.toString().padLeft(2, '0');
-    final minute = local.minute.toString().padLeft(2, '0');
-    return '$day/$month/${local.year} • $hour:$minute';
   }
 }

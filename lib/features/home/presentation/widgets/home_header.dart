@@ -23,7 +23,6 @@ class HomeHeader extends StatelessWidget {
       ),
     );
 
-    // Refresh the red badge after the user leaves the notifications screen.
     if (context.mounted) {
       context.read<UnreadNotificationsCubit>().checkUnread();
     }
@@ -62,15 +61,15 @@ class HomeHeader extends StatelessWidget {
             ),
           ),
           Container(
-            width: 100,
-            height: 100,
+            width: 80,
+            height: 80,
             decoration: BoxDecoration(
-              color: AppColors.primaryBlue,
+              color: AppColors.white,
               borderRadius: BorderRadius.circular(16),
             ),
             child: const AppAssetImage(
+
               assetPath: AppAssets.logo,
-              fit: BoxFit.contain,
               placeholderIcon: Icons.restaurant,
             ),
           ),

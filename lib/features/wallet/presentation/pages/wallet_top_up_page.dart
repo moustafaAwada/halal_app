@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:Halal/core/theme/app_colors.dart';
+import 'package:halal_app/core/theme/app_colors.dart';
 
 class WalletTopUpPage extends StatefulWidget {
   const WalletTopUpPage({super.key});

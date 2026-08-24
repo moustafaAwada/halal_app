@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/di/service_locator.dart';
 import 'core/router/app_router.dart';
 import 'core/router/app_routes.dart';
+import 'core/services/notification_service.dart';
 import 'core/theme/app_theme.dart';
 
 class HalalApp extends StatelessWidget {
@@ -33,6 +34,7 @@ class HalalApp extends StatelessWidget {
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initDependencies();
+  await NotificationService.init();
   Bloc.observer = _AppBlocObserver();
   runApp(const HalalApp());
 }
