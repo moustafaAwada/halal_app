@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart' as get_it;
+import 'package:dio/dio.dart' as dio_pkg;
 
 import '../../../../core/usecases/usecase.dart';
 import '../../../auth/domain/usecases/get_stored_user_id.dart';
@@ -100,5 +102,22 @@ class ProfileCubit extends Cubit<ProfileState> {
         );
       },
     );
+  }
+
+  Future<void> deleteAccount() async {
+    final currentState = state;
+    if (currentState is ProfileLoaded) {
+      emit(currentState.copyWith(isUpdating: true));
+    }
+    try {
+      final dio = get_it.GetIt.instance<dio_pkg.Dio>(); // We need to import it or just rely on the repository
+      await dio.delete('/client/delete-account');
+      emit(const ProfileActionError(message: 'Account deleted')); // The UI can handle this to logout
+    } catch (e) {
+      if (currentState is ProfileLoaded) {
+        emit(currentState.copyWith(isUpdating: false));
+      }
+      emit(ProfileActionError(message: 'Failed to delete account'));
+    }
   }
 }

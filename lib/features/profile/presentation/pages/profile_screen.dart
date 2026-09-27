@@ -253,6 +253,119 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Future<bool?> _showDeleteAccountConfirmationDialog() {
+    return showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.10),
+                  blurRadius: 30,
+                  offset: const Offset(0, 12),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.person_remove_rounded,
+                    color: Colors.red.shade400,
+                    size: 26,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  'حذف الحساب',
+                  style: AppTextStyles.onboardingTitle(
+                    color: Colors.black87,
+                  ).copyWith(fontSize: 18),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'هل أنت متأكد أنك تريد حذف حسابك؟ لا يمكن التراجع عن هذه الخطوة.',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.skipButton(color: Colors.black54).copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(dialogContext).pop(false),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: Colors.grey.shade300),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: Text(
+                            'إلغاء',
+                            style: AppTextStyles.primaryButton(
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: FilledButton(
+                          onPressed: () => Navigator.of(dialogContext).pop(true),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: Colors.red.shade400,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: Text(
+                            'حذف',
+                            style: AppTextStyles.primaryButton(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _handleDeleteAccount() async {
+    final confirmed = await _showDeleteAccountConfirmationDialog();
+    if (confirmed == true && mounted) {
+      context.read<ProfileCubit>().deleteAccount();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -266,7 +379,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _populateForm(state.profile);
               setState(() => _isEditing = false);
             } else if (state is ProfileActionError) {
-              SnackbarUtils.showErrorSnackBar(context, state.message);
+              if (state.message == 'Account deleted') {
+                SnackbarUtils.showSuccessSnackBar(context, 'تم حذف الحساب بنجاح');
+                _handleLogout();
+              } else {
+                SnackbarUtils.showErrorSnackBar(context, state.message);
+              }
             } else if (state is ProfileLoaded && !_isEditing) {
               _populateForm(state.profile);
             }
@@ -321,6 +439,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onCancelEdit: () => _cancelEditing(profile),
                   onSave: _saveProfile,
                   onLogout: _handleLogout,
+                  onDeleteAccount: _handleDeleteAccount,
                   onOpenSupportChat: _openSupportChat,
                   onRefresh: () => context.read<ProfileCubit>().fetchProfile(),
                 ),
@@ -349,6 +468,7 @@ class _ProfileContent extends StatelessWidget {
     required this.onCancelEdit,
     required this.onSave,
     required this.onLogout,
+    required this.onDeleteAccount,
     required this.onOpenSupportChat,
     required this.onRefresh,
   });
@@ -366,6 +486,7 @@ class _ProfileContent extends StatelessWidget {
   final VoidCallback onCancelEdit;
   final VoidCallback onSave;
   final VoidCallback onLogout;
+  final VoidCallback onDeleteAccount;
   final VoidCallback onOpenSupportChat;
   final Future<void> Function() onRefresh;
 
@@ -439,6 +560,8 @@ class _ProfileContent extends StatelessWidget {
                       _buildSupportChatButton(),
                       const SizedBox(height: 12),
                       _buildLogoutButton(),
+                      const SizedBox(height: 12),
+                      _buildDeleteAccountButton(),
                     ],
                   ),
                 ),
@@ -602,6 +725,54 @@ class _ProfileContent extends StatelessWidget {
               Expanded(
                 child: Text(
                   'تسجيل الخروج',
+                  style: AppTextStyles.skipButton(color: Colors.red.shade600).copyWith(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.arrow_back_ios,
+                size: 14,
+                color: Colors.red.shade300,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDeleteAccountButton() {
+    return Material(
+      color: Colors.red.shade50.withOpacity(0.6),
+      borderRadius: BorderRadius.circular(18),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onDeleteAccount,
+        splashColor: Colors.red.shade100,
+        highlightColor: Colors.red.shade50,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Colors.red.shade100, width: 1),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.person_remove_rounded, color: Colors.red, size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  'حذف الحساب',
                   style: AppTextStyles.skipButton(color: Colors.red.shade600).copyWith(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
